@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Budget Overview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1f2933;
+        --muted: #64748b;
+        --line: #d9e2ec;
+        --panel: #ffffff;
+        --page: #f5f7fb;
+        --income: #12805c;
+        --expense: #c2410c;
+        --accent: #2563eb;
+        --good: #d9fbe8;
+        --warn: #fff1d6;
+        --bad: #ffe2e2;
+        --shadow: 0 18px 45px rgba(15, 23, 42, 0.11);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 34rem),
+          linear-gradient(135deg, #f8fafc 0%, var(--page) 48%, #eef7f2 100%);
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      .app {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 40px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 4.25rem);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 10px 0 0;
+        max-width: 650px;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.55;
+      }
+
+      .month-pill {
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.78);
+        border-radius: 999px;
+        padding: 10px 14px;
+        color: var(--muted);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel,
+      .stat,
+      .transaction {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(217, 226, 236, 0.9);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .stat {
+        min-height: 118px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .amount {
+        margin-top: 12px;
+        font-size: clamp(1.45rem, 3vw, 2.1rem);
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .balance-positive {
+        color: var(--income);
+      }
+
+      .balance-negative {
+        color: var(--expense);
+      }
+
+      .chart-area {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+      }
+
+      .donut {
+        width: 180px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: conic-gradient(var(--expense) 0deg, var(--expense) var(--expense-angle), var(--income) var(--expense-angle), var(--income) 360deg);
+        display: grid;
+        place-items: center;
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+      }
+
+      .donut::before {
+        content: "";
+        width: 112px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: inset 0 0 0 1px var(--line);
+      }
+
+      .chart-copy h2,
+      .entry h2,
+      .ai h2 {
+        margin: 0 0 10px;
+        font-size: 1.15rem;
+      }
+
+      .health {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        margin-top: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 800;
+        background: var(--good);
+        color: #166534;
+      }
+
+      .bars {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 84px minmax(0, 1fr) 82px;
+        gap: 10px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .track {
+        height: 12px;
+        border-radius: 999px;
+        background: #e6edf5;
+        overflow: hidden;
+      }
+
+      .fill {
+        height: 100%;
+        width: var(--width);
+        border-radius: inherit;
+      }
+
+      .income-fill {
+        background: linear-gradient(90deg, #16a34a, #12805c);
+      }
+
+      .expense-fill {
+        background: linear-gradient(90deg, #f97316, #c2410c);
+      }
+
+      .entry {
+        position: sticky;
+        top: 18px;
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field span {
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+
+      input,
+      .type-choice {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        min-height: 44px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #eef3f8;
+      }
+
+      .type-choice label {
+        display: grid;
+        min-width: 0;
+      }
+
+      .type-choice input {
+        position: absolute;
+        width: 1px;
+        min-height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .type-choice span {
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        color: var(--muted);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .type-choice input:checked + span {
+        background: #fff;
+        color: var(--ink);
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
+      }
+
+      .type-choice input:focus + span {
+        outline: 2px solid rgba(37, 99, 235, 0.5);
+        outline-offset: 1px;
+      }
+
+      select {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #fff;
+        color: var(--ink);
+        outline: none;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .add-button {
+        min-height: 46px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--ink);
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .add-button:hover {
+        background: #111827;
+      }
+
+      .transactions {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .transaction {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) auto auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+      }
+
+      .marker {
+        width: 42px;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        color: #fff;
+      }
+
+      .income-marker {
+        background: var(--income);
+      }
+
+      .expense-marker {
+        background: var(--expense);
+      }
+
+      .transaction strong {
+        display: block;
+        overflow-wrap: anywhere;
+      }
+
+      .transaction small {
+        color: var(--muted);
+      }
+
+      .transaction-amount {
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .remove {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .remove:hover {
+        border-color: #fecaca;
+        color: var(--expense);
+      }
+
+      .ai {
+        margin-top: 18px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(232, 244, 255, 0.9));
+      }
+
+      .ai-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .insight {
+        min-height: 136px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .insight strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .insight p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .good {
+        border-color: #9ae6b4;
+        background: var(--good);
+      }
+
+      .warn {
+        border-color: #fed7aa;
+        background: var(--warn);
+      }
+
+      .bad {
+        border-color: #fecaca;
+        background: var(--bad);
+      }
+
+      @media (max-width: 880px) {
+        .topbar,
+        .layout {
+          display: block;
+        }
+
+        .month-pill {
+          display: inline-flex;
+          margin-top: 16px;
+        }
+
+        .entry {
+          position: static;
+          margin-top: 18px;
+        }
+
+        .ai-grid,
+        .stats {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .app {
+          width: min(100% - 20px, 1120px);
+          padding-top: 18px;
+        }
+
+        .chart-area,
+        .row,
+        .transaction {
+          grid-template-columns: 1fr;
+        }
+
+        .donut {
+          width: min(180px, 70vw);
+          justify-self: center;
+        }
+
+        .bar-row {
+          grid-template-columns: 76px minmax(0, 1fr);
+        }
+
+        .bar-row strong {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>Budget Overview</h1>
+          <p class="subtitle">
+            Track income and expenses, see where your money is going, and get
+            clear guidance from the overview at the bottom.
+          </p>
+        </div>
+        <div class="month-pill" id="monthLabel">This month</div>
+      </header>
+
+      <section class="layout">
+        <div>
+          <section class="stats" aria-label="Budget summary">
+            <article class="stat">
+              <span class="label">Income</span>
+              <strong class="amount balance-positive" id="incomeTotal">R0</strong>
+            </article>
+            <article class="stat">
+              <span class="label">Expenses</span>
+              <strong class="amount balance-negative" id="expenseTotal">R0</strong>
+            </article>
+            <article class="stat">
+              <span class="label">Left Over</span>
+              <strong class="amount" id="balanceTotal">R0</strong>
+            </article>
+          </section>
+
+          <section class="panel">
+            <div class="chart-area">
+              <div class="donut" id="donut" aria-label="Income and expense chart"></div>
+              <div class="chart-copy">
+                <h2>Monthly Picture</h2>
+                <p class="subtitle" id="chartSummary">
+                  Add income and expenses to build your budget picture.
+                </p>
+                <span class="health" id="healthBadge">Ready to plan</span>
+              </div>
+            </div>
+            <div class="bars" aria-label="Income and expense bars">
+              <div class="bar-row">
+                <span>Income</span>
+                <div class="track"><div class="fill income-fill" id="incomeBar"></div></div>
+                <strong id="incomePercent">0%</strong>
+              </div>
+              <div class="bar-row">
+                <span>Expenses</span>
+                <div class="track"><div class="fill expense-fill" id="expenseBar"></div></div>
+                <strong id="expensePercent">0%</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="transactions" id="transactions" aria-label="Transactions"></section>
+        </div>
+
+        <aside class="panel entry">
+          <h2>Add Money Item</h2>
+          <form id="budgetForm">
+            <label class="field">
+              <span>Name</span>
+              <input id="itemName" type="text" placeholder="Salary, rent, groceries" required />
+            </label>
+            <div class="field">
+              <span>Type</span>
+              <div class="type-choice" role="radiogroup" aria-label="Type">
+                <label>
+                  <input type="radio" name="itemType" value="income" checked />
+                  <span>Income</span>
+                </label>
+                <label>
+                  <input type="radio" name="itemType" value="expense" />
+                  <span>Expense</span>
+                </label>
+              </div>
+            </div>
+            <label class="field">
+              <span>Amount</span>
+              <input id="itemAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required />
+            </label>
+            <label class="field">
+              <span>Category</span>
+              <input id="itemCategory" type="text" placeholder="Work, home, food, transport" />
+            </label>
+            <button class="add-button" type="submit">Add Item</button>
+          </form>
+        </aside>
+      </section>
+
+      <section class="panel ai" aria-label="AI overview">
+        <h2>AI Overview</h2>
+        <div class="ai-grid" id="aiOverview"></div>
+      </section>
+    </main>
+
+    <script>
+      const money = new Intl.NumberFormat("en-ZA", {
+        style: "currency",
+        currency: "ZAR",
+        maximumFractionDigits: 0,
+      });
+
+      const state = {
+        items: [
+          { id: 1, name: "Monthly salary", type: "income", amount: 18500, category: "Work" },
+          { id: 2, name: "Rent", type: "expense", amount: 7200, category: "Home" },
+          { id: 3, name: "Groceries", type: "expense", amount: 2600, category: "Food" },
+          { id: 4, name: "Transport", type: "expense", amount: 1300, category: "Travel" },
+        ],
+      };
+
+      const form = document.querySelector("#budgetForm");
+      const transactions = document.querySelector("#transactions");
+      const aiOverview = document.querySelector("#aiOverview");
+      const donut = document.querySelector("#donut");
+      const incomeBar = document.querySelector("#incomeBar");
+      const expenseBar = document.querySelector("#expenseBar");
+
+      document.querySelector("#monthLabel").textContent = new Intl.DateTimeFormat("en-ZA", {
+        month: "long",
+        year: "numeric",
+      }).format(new Date());
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = document.querySelector("#itemName").value.trim();
+        const type = document.querySelector("input[name='itemType']:checked").value;
+        const amount = Number(document.querySelector("#itemAmount").value);
+        const category = document.querySelector("#itemCategory").value.trim() || "General";
+
+        if (!name || amount <= 0) return;
+
+        state.items.unshift({
+          id: Date.now(),
+          name,
+          type,
+          amount,
+          category,
+        });
+
+        form.reset();
+        render();
+      });
+
+      transactions.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-id]");
+        if (!button) return;
+        state.items = state.items.filter((item) => item.id !== Number(button.dataset.id));
+        render();
+      });
+
+      function totals() {
+        const income = state.items
+          .filter((item) => item.type === "income")
+          .reduce((sum, item) => sum + item.amount, 0);
+        const expenses = state.items
+          .filter((item) => item.type === "expense")
+          .reduce((sum, item) => sum + item.amount, 0);
+
+        return { income, expenses, balance: income - expenses };
+      }
+
+      function render() {
+        const { income, expenses, balance } = totals();
+        const totalMovement = income + expenses;
+        const expenseRatio = income > 0 ? expenses / income : 0;
+        const expenseAngle = totalMovement > 0 ? (expenses / totalMovement) * 360 : 0;
+        const incomePercent = totalMovement > 0 ? Math.round((income / totalMovement) * 100) : 0;
+        const expensePercent = totalMovement > 0 ? 100 - incomePercent : 0;
+
+        document.querySelector("#incomeTotal").textContent = money.format(income);
+        document.querySelector("#expenseTotal").textContent = money.format(expenses);
+        document.querySelector("#balanceTotal").textContent = money.format(balance);
+        document.querySelector("#balanceTotal").className = `amount ${balance >= 0 ? "balance-positive" : "balance-negative"}`;
+
+        donut.style.setProperty("--expense-angle", `${expenseAngle}deg`);
+        incomeBar.style.setProperty("--width", `${incomePercent}%`);
+        expenseBar.style.setProperty("--width", `${expensePercent}%`);
+        document.querySelector("#incomePercent").textContent = `${incomePercent}%`;
+        document.querySelector("#expensePercent").textContent = `${expensePercent}%`;
+
+        updateHealth(expenseRatio, balance, income);
+        renderTransactions();
+        renderAiOverview(income, expenses, balance, expenseRatio);
+      }
+
+      function updateHealth(expenseRatio, balance, income) {
+        const badge = document.querySelector("#healthBadge");
+        const summary = document.querySelector("#chartSummary");
+
+        if (income === 0) {
+          badge.textContent = "Add income";
+          badge.style.background = "var(--warn)";
+          badge.style.color = "#92400e";
+          summary.textContent = "Start with your main income, then add your regular expenses.";
+          return;
+        }
+
+        if (balance < 0) {
+          badge.textContent = "Needs attention";
+          badge.style.background = "var(--bad)";
+          badge.style.color = "#991b1b";
+          summary.textContent = `You are over budget by ${money.format(Math.abs(balance))}.`;
+          return;
+        }
+
+        if (expenseRatio <= 0.7) {
+          badge.textContent = "Healthy budget";
+          badge.style.background = "var(--good)";
+          badge.style.color = "#166534";
+          summary.textContent = `You are keeping ${money.format(balance)} available after expenses.`;
+          return;
+        }
+
+        badge.textContent = "Watch spending";
+        badge.style.background = "var(--warn)";
+        badge.style.color = "#92400e";
+        summary.textContent = `You have ${money.format(balance)} left, but expenses are using most income.`;
+      }
+
+      function renderTransactions() {
+        if (!state.items.length) {
+          transactions.innerHTML = `
+            <article class="transaction">
+              <div class="marker income-marker">+</div>
+              <div>
+                <strong>No items yet</strong>
+                <small>Add your first income or expense</small>
+              </div>
+            </article>
+          `;
+          return;
+        }
+
+        transactions.innerHTML = state.items
+          .map((item) => {
+            const sign = item.type === "income" ? "+" : "-";
+            const markerClass = item.type === "income" ? "income-marker" : "expense-marker";
+            const amountClass = item.type === "income" ? "balance-positive" : "balance-negative";
+
+            return `
+              <article class="transaction">
+                <div class="marker ${markerClass}">${sign}</div>
+                <div>
+                  <strong>${escapeHtml(item.name)}</strong>
+                  <small>${escapeHtml(item.category)} · ${item.type}</small>
+                </div>
+                <span class="transaction-amount ${amountClass}">${sign}${money.format(item.amount)}</span>
+                <button class="remove" type="button" data-id="${item.id}" aria-label="Remove ${escapeHtml(item.name)}">x</button>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function renderAiOverview(income, expenses, balance, expenseRatio) {
+        const savingsRate = income > 0 ? balance / income : 0;
+        const biggestExpense = state.items
+          .filter((item) => item.type === "expense")
+          .sort((a, b) => b.amount - a.amount)[0];
+
+        const goodText =
+          income === 0
+            ? "Once your income is added, the overview can compare spending against what you bring in."
+            : savingsRate >= 0.2
+              ? `You are saving about ${Math.round(savingsRate * 100)}% of your income, which is a strong cushion.`
+              : balance > 0
+                ? "You are still ending with money left over, so the budget has room to improve without starting from zero."
+                : "You are tracking the numbers now, which is the first useful step toward fixing the month.";
+
+        const improveText =
+          income === 0
+            ? "Add at least one income item so advice can become more specific."
+            : balance < 0
+              ? `Cut or delay about ${money.format(Math.abs(balance))} of spending to get back above zero.`
+              : expenseRatio > 0.8
+                ? "Expenses are taking more than 80% of income. Try trimming small repeat purchases first."
+                : "Try moving a fixed amount into savings as soon as income arrives.";
+
+        const watchText = biggestExpense
+          ? `${biggestExpense.name} is your largest expense at ${money.format(biggestExpense.amount)}. Review whether it can be reduced or planned earlier.`
+          : "No expenses have been added yet. Add rent, food, transport, subscriptions, and debt payments.";
+
+        aiOverview.innerHTML = `
+          <article class="insight good">
+            <strong>Doing well</strong>
+            <p>${goodText}</p>
+          </article>
+          <article class="insight ${balance < 0 || expenseRatio > 0.8 ? "bad" : "warn"}">
+            <strong>Improve next</strong>
+            <p>${improveText}</p>
+          </article>
+          <article class="insight warn">
+            <strong>Watch closely</strong>
+            <p>${watchText}</p>
+          </article>
+        `;
+      }
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, (char) => {
+          const replacements = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;",
+          };
+          return replacements[char];
+        });
+      }
+
+      render();
+    </script>
+  </body>
+</html>
