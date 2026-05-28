@@ -49,6 +49,141 @@
         padding: 28px 0 40px;
       }
 
+      .app[hidden],
+      .auth-screen[hidden],
+      .payment-screen[hidden] {
+        display: none;
+      }
+
+      .auth-screen,
+      .payment-screen {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .auth-card {
+        width: min(100%, 440px);
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(217, 226, 236, 0.95);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .auth-card h1 {
+        font-size: clamp(2rem, 9vw, 3.25rem);
+      }
+
+      .auth-card .subtitle {
+        margin-bottom: 20px;
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .payment-card {
+        width: min(100%, 960px);
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(217, 226, 236, 0.95);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin: 20px 0;
+      }
+
+      .plan-card {
+        position: relative;
+        display: grid;
+        gap: 12px;
+        min-height: 232px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+      }
+
+      .plan-card input {
+        position: absolute;
+        width: 1px;
+        min-height: 1px;
+        opacity: 0;
+      }
+
+      .plan-card:has(input:checked) {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+      }
+
+      .plan-name {
+        font-size: 1.05rem;
+        font-weight: 900;
+      }
+
+      .plan-price {
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .plan-price span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .plan-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .payment-details {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .payment-note {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .user-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .sign-out {
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--muted);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .sign-out:hover {
+        color: var(--ink);
+        border-color: #b8c4d6;
+      }
+
       .topbar {
         display: flex;
         align-items: end;
@@ -243,15 +378,27 @@
       }
 
       input,
-      .type-choice {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+      select {
+        width: 100%;
         min-height: 44px;
-        padding: 4px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: #eef3f8;
+        padding: 10px 12px;
+        background: #fff;
+        color: var(--ink);
+        outline: none;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+      }
+
+      .type-choice {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
       }
 
       .type-choice label {
@@ -270,16 +417,20 @@
       .type-choice span {
         display: grid;
         place-items: center;
-        border-radius: 6px;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
         color: var(--muted);
-        font-weight: 800;
+        font-weight: 900;
         cursor: pointer;
       }
 
       .type-choice input:checked + span {
-        background: #fff;
+        border-color: var(--accent);
+        background: #eff6ff;
         color: var(--ink);
-        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
       }
 
       .type-choice input:focus + span {
@@ -287,21 +438,8 @@
         outline-offset: 1px;
       }
 
-      select {
-        width: 100%;
-        min-height: 44px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 10px 12px;
-        background: #fff;
-        color: var(--ink);
-        outline: none;
-      }
-
-      input:focus,
-      select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+      .expense-category[hidden] {
+        display: none;
       }
 
       .row {
@@ -391,50 +529,51 @@
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(232, 244, 255, 0.9));
       }
 
-      .ai-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+      .ai-actions {
+        display: flex;
+        align-items: center;
         gap: 12px;
+        flex-wrap: wrap;
       }
 
-      .insight {
-        min-height: 136px;
+      .overview-button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .overview-button:hover {
+        background: #1d4ed8;
+      }
+
+      .overview-output {
+        margin-top: 14px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        padding: 14px;
+        padding: 16px;
         background: rgba(255, 255, 255, 0.72);
       }
 
-      .insight strong {
-        display: block;
-        margin-bottom: 8px;
-      }
-
-      .insight p {
+      .overview-output p {
         margin: 0;
         color: var(--muted);
-        line-height: 1.45;
-      }
-
-      .good {
-        border-color: #9ae6b4;
-        background: var(--good);
-      }
-
-      .warn {
-        border-color: #fed7aa;
-        background: var(--warn);
-      }
-
-      .bad {
-        border-color: #fecaca;
-        background: var(--bad);
+        line-height: 1.65;
       }
 
       @media (max-width: 880px) {
         .topbar,
         .layout {
           display: block;
+        }
+
+        .pricing-grid,
+        .payment-details {
+          grid-template-columns: 1fr;
         }
 
         .month-pill {
@@ -447,7 +586,6 @@
           margin-top: 18px;
         }
 
-        .ai-grid,
         .stats {
           grid-template-columns: 1fr;
         }
@@ -481,7 +619,96 @@
     </style>
   </head>
   <body>
-    <main class="app">
+    <section class="auth-screen" id="authScreen">
+      <div class="auth-card">
+        <h1>Create Account</h1>
+        <p class="subtitle">
+          Set up a basic local account before opening your budget dashboard.
+        </p>
+        <form class="auth-form" id="accountForm">
+          <label class="field">
+            <span>Name</span>
+            <input id="accountName" type="text" autocomplete="name" placeholder="Your name" required />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="accountPassword" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required />
+          </label>
+          <button class="add-button" type="submit">Create Account</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="payment-screen" id="paymentScreen" hidden>
+      <div class="payment-card">
+        <h1>Choose Your Plan</h1>
+        <p class="subtitle">
+          Pick a plan to unlock the budget dashboard. Paid plans use a demo
+          payment form in this static version.
+        </p>
+        <form id="paymentForm">
+          <div class="pricing-grid" role="radiogroup" aria-label="Plan">
+            <label class="plan-card">
+              <input type="radio" name="plan" value="free" checked />
+              <span class="plan-name">Free</span>
+              <strong class="plan-price">R0 <span>/ forever</span></strong>
+              <ul>
+                <li>Income and expense tracking</li>
+                <li>Budget chart</li>
+                <li>Basic AI overview</li>
+              </ul>
+            </label>
+            <label class="plan-card">
+              <input type="radio" name="plan" value="monthly" />
+              <span class="plan-name">Pro Monthly</span>
+              <strong class="plan-price">R49 <span>/ month</span></strong>
+              <ul>
+                <li>Everything in Free</li>
+                <li>Advanced advice prompts</li>
+                <li>Monthly planning focus</li>
+              </ul>
+            </label>
+            <label class="plan-card">
+              <input type="radio" name="plan" value="yearly" />
+              <span class="plan-name">Pro Yearly</span>
+              <strong class="plan-price">R299 <span>/ year</span></strong>
+              <ul>
+                <li>Best value plan</li>
+                <li>Everything in Pro Monthly</li>
+                <li>Annual savings focus</li>
+              </ul>
+            </label>
+          </div>
+
+          <p class="payment-note" id="paymentNote">
+            Free plan selected. No payment details are needed.
+          </p>
+
+          <div class="payment-details" id="paymentDetails" hidden>
+            <label class="field">
+              <span>Card Number</span>
+              <input id="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="4242 4242 4242 4242" />
+            </label>
+            <label class="field">
+              <span>Expiry</span>
+              <input id="cardExpiry" type="text" autocomplete="cc-exp" placeholder="MM/YY" />
+            </label>
+            <label class="field">
+              <span>CVC</span>
+              <input id="cardCvc" type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="123" />
+            </label>
+          </div>
+
+          <button class="add-button" type="submit" id="planButton">Continue Free</button>
+        </form>
+      </div>
+    </section>
+
+    <main class="app" id="budgetApp" hidden>
       <header class="topbar">
         <div>
           <h1>Budget Overview</h1>
@@ -490,7 +717,10 @@
             clear guidance from the overview at the bottom.
           </p>
         </div>
-        <div class="month-pill" id="monthLabel">This month</div>
+        <div class="user-chip">
+          <div class="month-pill" id="accountLabel">Your account</div>
+          <button class="sign-out" type="button" id="signOutButton">Sign out</button>
+        </div>
       </header>
 
       <section class="layout">
@@ -562,9 +792,19 @@
               <span>Amount</span>
               <input id="itemAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required />
             </label>
-            <label class="field">
+            <label class="field expense-category" id="expenseCategoryField" hidden>
               <span>Category</span>
-              <input id="itemCategory" type="text" placeholder="Work, home, food, transport" />
+              <select id="itemCategory">
+                <option value="Food">Food</option>
+                <option value="Home">Home</option>
+                <option value="Transport">Transport</option>
+                <option value="Subscriptions">Subscriptions</option>
+                <option value="Debt">Debt</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Health">Health</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Other">Other</option>
+              </select>
             </label>
             <button class="add-button" type="submit">Add Item</button>
           </form>
@@ -573,7 +813,13 @@
 
       <section class="panel ai" aria-label="AI overview">
         <h2>AI Overview</h2>
-        <div class="ai-grid" id="aiOverview"></div>
+        <div class="ai-actions">
+          <button class="overview-button" type="button" id="overviewButton">Get an overview</button>
+          <span class="subtitle">Generate a detailed summary from your current budget.</span>
+        </div>
+        <div class="overview-output" id="aiOverview" hidden>
+          <p>Your overview will appear here after you click the button.</p>
+        </div>
       </section>
     </main>
 
@@ -593,24 +839,90 @@
         ],
       };
 
+      const accountKey = "budget-app-account";
+      const accountForm = document.querySelector("#accountForm");
+      const authScreen = document.querySelector("#authScreen");
+      const paymentScreen = document.querySelector("#paymentScreen");
+      const paymentForm = document.querySelector("#paymentForm");
+      const paymentDetails = document.querySelector("#paymentDetails");
+      const paymentNote = document.querySelector("#paymentNote");
+      const planButton = document.querySelector("#planButton");
+      const budgetApp = document.querySelector("#budgetApp");
       const form = document.querySelector("#budgetForm");
       const transactions = document.querySelector("#transactions");
       const aiOverview = document.querySelector("#aiOverview");
+      const expenseCategoryField = document.querySelector("#expenseCategoryField");
       const donut = document.querySelector("#donut");
       const incomeBar = document.querySelector("#incomeBar");
       const expenseBar = document.querySelector("#expenseBar");
 
-      document.querySelector("#monthLabel").textContent = new Intl.DateTimeFormat("en-ZA", {
-        month: "long",
-        year: "numeric",
-      }).format(new Date());
+      accountForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = document.querySelector("#accountName").value.trim();
+        const email = document.querySelector("#accountEmail").value.trim();
+        const password = document.querySelector("#accountPassword").value;
+
+        if (!name || !email || password.length < 6) return;
+
+        localStorage.setItem(
+          accountKey,
+          JSON.stringify({
+            name,
+            email,
+            plan: null,
+            paymentStatus: "pending",
+            createdAt: new Date().toISOString(),
+          })
+        );
+
+        accountForm.reset();
+        showPaymentScreen();
+      });
+
+      paymentForm.addEventListener("change", updatePaymentFields);
+
+      paymentForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const selectedPlan = document.querySelector("input[name='plan']:checked").value;
+        const account = getAccount();
+        if (!account) {
+          showAuthScreen();
+          return;
+        }
+
+        if (selectedPlan !== "free" && !paymentDetailsComplete()) return;
+
+        const planDetails = plans[selectedPlan];
+        localStorage.setItem(
+          accountKey,
+          JSON.stringify({
+            ...account,
+            plan: selectedPlan,
+            paymentStatus: selectedPlan === "free" ? "free" : "demo-paid",
+            planLabel: planDetails.label,
+            planPrice: planDetails.price,
+            planStartedAt: new Date().toISOString(),
+          })
+        );
+
+        showBudgetApp();
+      });
+
+      document.querySelector("#signOutButton").addEventListener("click", () => {
+        localStorage.removeItem(accountKey);
+        showAuthScreen();
+      });
+
+      form.addEventListener("change", (event) => {
+        if (event.target.name === "itemType") updateCategoryVisibility();
+      });
 
       form.addEventListener("submit", (event) => {
         event.preventDefault();
         const name = document.querySelector("#itemName").value.trim();
         const type = document.querySelector("input[name='itemType']:checked").value;
         const amount = Number(document.querySelector("#itemAmount").value);
-        const category = document.querySelector("#itemCategory").value.trim() || "General";
+        const category = type === "expense" ? document.querySelector("#itemCategory").value : "Income";
 
         if (!name || amount <= 0) return;
 
@@ -623,6 +935,7 @@
         });
 
         form.reset();
+        updateCategoryVisibility();
         render();
       });
 
@@ -632,6 +945,33 @@
         state.items = state.items.filter((item) => item.id !== Number(button.dataset.id));
         render();
       });
+
+      document.querySelector("#overviewButton").addEventListener("click", () => {
+        const { income, expenses, balance } = totals();
+        const expenseRatio = income > 0 ? expenses / income : 0;
+        renderAiOverview(income, expenses, balance, expenseRatio);
+      });
+
+      const plans = {
+        free: {
+          label: "Free",
+          price: "R0",
+          note: "Free plan selected. No payment details are needed.",
+          button: "Continue Free",
+        },
+        monthly: {
+          label: "Pro Monthly",
+          price: "R49/month",
+          note: "Pro Monthly selected. Enter demo card details to continue.",
+          button: "Pay R49 Monthly",
+        },
+        yearly: {
+          label: "Pro Yearly",
+          price: "R299/year",
+          note: "Pro Yearly selected. Enter demo card details to continue.",
+          button: "Pay R299 Yearly",
+        },
+      };
 
       function totals() {
         const income = state.items
@@ -665,7 +1005,6 @@
 
         updateHealth(expenseRatio, balance, income);
         renderTransactions();
-        renderAiOverview(income, expenses, balance, expenseRatio);
       }
 
       function updateHealth(expenseRatio, balance, income) {
@@ -742,43 +1081,42 @@
         const biggestExpense = state.items
           .filter((item) => item.type === "expense")
           .sort((a, b) => b.amount - a.amount)[0];
-
-        const goodText =
+        const expenseCategories = state.items
+          .filter((item) => item.type === "expense")
+          .reduce((categories, item) => {
+            categories[item.category] = (categories[item.category] || 0) + item.amount;
+            return categories;
+          }, {});
+        const topCategory = Object.entries(expenseCategories).sort((a, b) => b[1] - a[1])[0];
+        const savingsSentence =
           income === 0
-            ? "Once your income is added, the overview can compare spending against what you bring in."
+            ? "At the moment there is no income recorded, so the first priority is to add your main income source before judging whether the budget is healthy."
             : savingsRate >= 0.2
-              ? `You are saving about ${Math.round(savingsRate * 100)}% of your income, which is a strong cushion.`
-              : balance > 0
-                ? "You are still ending with money left over, so the budget has room to improve without starting from zero."
-                : "You are tracking the numbers now, which is the first useful step toward fixing the month.";
-
-        const improveText =
+              ? `You are keeping about ${Math.round(savingsRate * 100)}% of your income after expenses, which is a strong position because it gives you room for savings, emergencies, and future goals.`
+              : balance >= 0
+                ? `You are still ending with ${money.format(balance)} left over, but your savings margin is fairly tight, so a few small expense increases could put pressure on the month.`
+                : `Your expenses are currently higher than your income by ${money.format(Math.abs(balance))}, which means the budget needs attention before adding any new spending.`;
+        const spendingSentence = biggestExpense
+          ? `Your largest single expense is ${biggestExpense.name} at ${money.format(biggestExpense.amount)}, and your biggest category is ${topCategory[0]} at ${money.format(topCategory[1])}. That is the best place to look first if you want a meaningful improvement without cutting lots of tiny items.`
+          : "There are no expenses recorded yet, so add the main recurring costs such as rent, food, transport, subscriptions, debt, and health before relying on the advice.";
+        const adviceSentence =
           income === 0
-            ? "Add at least one income item so advice can become more specific."
+            ? "Once income is added, aim to keep essential expenses below your income and set a realistic savings target."
             : balance < 0
-              ? `Cut or delay about ${money.format(Math.abs(balance))} of spending to get back above zero.`
+              ? `A practical next step is to reduce or delay at least ${money.format(Math.abs(balance))} of expenses, then build a small buffer so the next unexpected cost does not push the month negative again.`
               : expenseRatio > 0.8
-                ? "Expenses are taking more than 80% of income. Try trimming small repeat purchases first."
-                : "Try moving a fixed amount into savings as soon as income arrives.";
+                ? "Your expenses are using more than 80% of income, so focus on lowering repeat costs and avoid adding new subscriptions or lifestyle expenses until the leftover amount is stronger."
+                : "The budget is in a workable place, so the best next step is to decide where the leftover money should go: emergency savings, debt reduction, or a planned goal rather than letting it disappear through unplanned spending.";
 
-        const watchText = biggestExpense
-          ? `${biggestExpense.name} is your largest expense at ${money.format(biggestExpense.amount)}. Review whether it can be reduced or planned earlier.`
-          : "No expenses have been added yet. Add rent, food, transport, subscriptions, and debt payments.";
+        aiOverview.hidden = false;
+        aiOverview.innerHTML = `<p>${savingsSentence} ${spendingSentence} ${adviceSentence}</p>`;
+      }
 
-        aiOverview.innerHTML = `
-          <article class="insight good">
-            <strong>Doing well</strong>
-            <p>${goodText}</p>
-          </article>
-          <article class="insight ${balance < 0 || expenseRatio > 0.8 ? "bad" : "warn"}">
-            <strong>Improve next</strong>
-            <p>${improveText}</p>
-          </article>
-          <article class="insight warn">
-            <strong>Watch closely</strong>
-            <p>${watchText}</p>
-          </article>
-        `;
+      function updateCategoryVisibility() {
+        const selectedType = document.querySelector("input[name='itemType']:checked").value;
+        const isExpense = selectedType === "expense";
+        expenseCategoryField.hidden = !isExpense;
+        document.querySelector("#itemCategory").required = isExpense;
       }
 
       function escapeHtml(value) {
@@ -794,7 +1132,71 @@
         });
       }
 
-      render();
+      function showBudgetApp() {
+        const account = getAccount();
+        const month = new Intl.DateTimeFormat("en-ZA", {
+          month: "long",
+          year: "numeric",
+        }).format(new Date());
+
+        const planName = account.planLabel || "Free";
+        document.querySelector("#accountLabel").textContent = `${account.name} · ${planName} · ${month}`;
+        authScreen.hidden = true;
+        paymentScreen.hidden = true;
+        budgetApp.hidden = false;
+        render();
+      }
+
+      function showPaymentScreen() {
+        authScreen.hidden = true;
+        budgetApp.hidden = true;
+        paymentScreen.hidden = false;
+        updatePaymentFields();
+      }
+
+      function showAuthScreen() {
+        budgetApp.hidden = true;
+        paymentScreen.hidden = true;
+        authScreen.hidden = false;
+        document.querySelector("#accountName").focus();
+      }
+
+      function updatePaymentFields() {
+        const selectedPlan = document.querySelector("input[name='plan']:checked").value;
+        const planDetails = plans[selectedPlan];
+        const requiresPayment = selectedPlan !== "free";
+
+        paymentDetails.hidden = !requiresPayment;
+        paymentNote.textContent = planDetails.note;
+        planButton.textContent = planDetails.button;
+        document.querySelector("#cardNumber").required = requiresPayment;
+        document.querySelector("#cardExpiry").required = requiresPayment;
+        document.querySelector("#cardCvc").required = requiresPayment;
+      }
+
+      function paymentDetailsComplete() {
+        const cardNumber = document.querySelector("#cardNumber").value.trim();
+        const cardExpiry = document.querySelector("#cardExpiry").value.trim();
+        const cardCvc = document.querySelector("#cardCvc").value.trim();
+        return cardNumber.length >= 12 && cardExpiry.length >= 4 && cardCvc.length >= 3;
+      }
+
+      function getAccount() {
+        try {
+          return JSON.parse(localStorage.getItem(accountKey));
+        } catch {
+          return null;
+        }
+      }
+
+      const savedAccount = getAccount();
+      if (savedAccount?.plan) {
+        showBudgetApp();
+      } else if (savedAccount) {
+        showPaymentScreen();
+      } else {
+        showAuthScreen();
+      }
     </script>
   </body>
 </html>
