@@ -12,13 +12,18 @@
         --line: #d9e2ec;
         --panel: #ffffff;
         --page: #f5f7fb;
-        --income: #12805c;
-        --expense: #c2410c;
-        --accent: #2563eb;
+        --income: #55bf91;
+        --income-deep: #40996e;
+        --expense: #ee3d72;
+        --expense-deep: #bd2449;
+        --savings: #7257f4;
+        --chart: #4f46e5;
+        --chart-alt: #f97316;
+        --accent: #6263e8;
         --good: #d9fbe8;
         --warn: #fff1d6;
         --bad: #ffe2e2;
-        --shadow: 0 18px 45px rgba(15, 23, 42, 0.11);
+        --shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
       }
 
       * {
@@ -33,8 +38,8 @@
           "Segoe UI", sans-serif;
         color: var(--ink);
         background:
-          radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 34rem),
-          linear-gradient(135deg, #f8fafc 0%, var(--page) 48%, #eef7f2 100%);
+          radial-gradient(circle at top left, rgba(98, 99, 232, 0.12), transparent 34rem),
+          linear-gradient(180deg, #ffffff 0%, #f4f6fb 46%, #f7f8fc 100%);
       }
 
       button,
@@ -44,7 +49,7 @@
       }
 
       .app {
-        width: min(1120px, calc(100% - 32px));
+        width: min(940px, calc(100% - 32px));
         margin: 0 auto;
         padding: 28px 0 40px;
       }
@@ -190,7 +195,7 @@
 
       .topbar {
         display: flex;
-        align-items: end;
+        align-items: center;
         justify-content: space-between;
         gap: 20px;
         margin-bottom: 22px;
@@ -221,148 +226,213 @@
         box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
       }
 
-      .layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 360px;
-        gap: 18px;
-        align-items: start;
-      }
-
       .panel,
-      .stat,
       .transaction {
         background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(217, 226, 236, 0.9);
-        border-radius: 8px;
+        border: 1px solid rgba(217, 226, 236, 0.95);
+        border-radius: 28px;
         box-shadow: var(--shadow);
       }
 
       .panel {
-        padding: 18px;
+        padding: clamp(20px, 4vw, 34px);
       }
 
       .stats {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 18px;
+        gap: 22px;
+        margin-bottom: 26px;
       }
 
       .stat {
-        min-height: 118px;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        position: relative;
+        min-height: 220px;
+        overflow: hidden;
+        border-radius: 28px;
+        padding: clamp(26px, 5vw, 42px);
+        color: #fff;
+        box-shadow: 0 18px 30px rgba(15, 23, 42, 0.16);
       }
 
       .label {
-        color: var(--muted);
-        font-size: 0.82rem;
-        font-weight: 700;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: clamp(1.05rem, 3vw, 1.55rem);
+        font-weight: 500;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.04em;
       }
 
       .amount {
-        margin-top: 12px;
-        font-size: clamp(1.45rem, 3vw, 2.1rem);
-        font-weight: 800;
+        display: block;
+        margin-top: 34px;
+        font-size: clamp(3rem, 10vw, 5rem);
+        font-weight: 900;
         line-height: 1;
       }
 
-      .balance-positive {
-        color: var(--income);
+      .stat-detail {
+        display: block;
+        margin-top: 22px;
+        color: rgba(255, 255, 255, 0.88);
+        font-size: clamp(1rem, 3vw, 1.5rem);
       }
 
-      .balance-negative {
-        color: var(--expense);
+      .income-card {
+        background: linear-gradient(135deg, var(--income), #53bda4);
       }
 
-      .chart-area {
-        display: grid;
-        grid-template-columns: 180px minmax(0, 1fr);
-        gap: 18px;
-        align-items: center;
+      .expense-card {
+        background: linear-gradient(135deg, #f23d69, #e3358a);
       }
 
-      .donut {
-        width: 180px;
+      .savings-card {
+        background: linear-gradient(135deg, #655bf5, #8354f3);
+      }
+
+      .stat-icon {
+        position: absolute;
+        top: 34px;
+        right: 34px;
+        width: 76px;
         aspect-ratio: 1;
         border-radius: 50%;
-        background: conic-gradient(var(--expense) 0deg, var(--expense) var(--expense-angle), var(--income) var(--expense-angle), var(--income) 360deg);
+        background: rgba(255, 255, 255, 0.16);
         display: grid;
         place-items: center;
-        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
       }
 
-      .donut::before {
+      .stat-icon svg,
+      .section-icon svg {
+        width: 38px;
+        height: 38px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .chart-card,
+      .entry-panel,
+      .ai {
+        margin-top: 26px;
+      }
+
+      .chart-card h2,
+      .entry h2,
+      .ai h2 {
+        margin: 0 0 22px;
+        color: #334155;
+        font-size: clamp(1.45rem, 4vw, 2rem);
+      }
+
+      .donut-wrap {
+        display: grid;
+        place-items: center;
+        min-height: 420px;
+        padding: 28px 0 44px;
+      }
+
+      .category-donut {
+        width: min(430px, 78vw);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: conic-gradient(var(--chart) 0deg 230deg, var(--chart-alt) 230deg 350deg, var(--expense) 350deg 360deg);
+        display: grid;
+        place-items: center;
+      }
+
+      .category-donut::before {
         content: "";
-        width: 112px;
+        width: 46%;
         aspect-ratio: 1;
         border-radius: 50%;
         background: #fff;
-        box-shadow: inset 0 0 0 1px var(--line);
       }
 
-      .chart-copy h2,
-      .entry h2,
-      .ai h2 {
-        margin: 0 0 10px;
-        font-size: 1.15rem;
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
       }
 
-      .health {
+      .legend span {
         display: inline-flex;
         align-items: center;
-        min-height: 32px;
-        margin-top: 8px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-weight: 800;
-        background: var(--good);
-        color: #166534;
-      }
-
-      .bars {
-        display: grid;
-        gap: 12px;
-        margin-top: 18px;
-      }
-
-      .bar-row {
-        display: grid;
-        grid-template-columns: 84px minmax(0, 1fr) 82px;
-        gap: 10px;
-        align-items: center;
+        gap: 8px;
         color: var(--muted);
-        font-size: 0.92rem;
+        font-weight: 700;
       }
 
-      .track {
-        height: 12px;
+      .legend i {
+        width: 12px;
+        aspect-ratio: 1;
         border-radius: 999px;
-        background: #e6edf5;
-        overflow: hidden;
+        background: var(--dot);
       }
 
-      .fill {
+      .bar-chart {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        gap: 12px;
+        min-height: 360px;
+      }
+
+      .bar-axis {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: end;
+        color: #737373;
+        font-size: clamp(0.9rem, 2.8vw, 1.25rem);
+      }
+
+      .bar-plot {
+        min-width: 0;
+        display: flex;
+        align-items: end;
+        gap: clamp(18px, 7vw, 64px);
+        padding: 0 10px 46px;
+        border-left: 2px solid #7a7a7a;
+        border-bottom: 2px solid #7a7a7a;
+        background-image:
+          linear-gradient(to right, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+          linear-gradient(to top, rgba(148, 163, 184, 0.22) 1px, transparent 1px);
+        background-size: 33.33% 100%, 100% 25%;
+      }
+
+      .bar-column {
+        position: relative;
+        flex: 1;
         height: 100%;
-        width: var(--width);
-        border-radius: inherit;
+        min-width: 70px;
+        display: flex;
+        align-items: end;
+        justify-content: center;
       }
 
-      .income-fill {
-        background: linear-gradient(90deg, #16a34a, #12805c);
+      .bar-fill {
+        width: min(100%, 150px);
+        height: var(--height);
+        min-height: 14px;
+        border-radius: 10px 10px 0 0;
+        background: var(--chart);
       }
 
-      .expense-fill {
-        background: linear-gradient(90deg, #f97316, #c2410c);
+      .bar-label {
+        position: absolute;
+        left: 50%;
+        bottom: -38px;
+        transform: translateX(-50%);
+        color: #707070;
+        font-size: clamp(0.9rem, 2.8vw, 1.2rem);
+        white-space: nowrap;
       }
 
       .entry {
-        position: sticky;
-        top: 18px;
+        display: grid;
+        gap: 26px;
       }
 
       form {
@@ -401,21 +471,37 @@
 
       .entry-stack {
         display: grid;
-        gap: 16px;
+        gap: 26px;
       }
 
       .entry-group {
         display: grid;
-        gap: 12px;
-        padding: 14px;
+        gap: 20px;
+        padding: clamp(22px, 5vw, 34px);
         border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(248, 250, 252, 0.78);
+        border-radius: 28px;
+        background: #fff;
+        box-shadow: var(--shadow);
       }
 
       .entry-group h3 {
         margin: 0;
-        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: clamp(1.7rem, 5vw, 2.3rem);
+      }
+
+      #incomeForm h3,
+      #incomeForm .section-icon,
+      .balance-positive {
+        color: var(--income-deep);
+      }
+
+      #expenseForm h3,
+      #expenseForm .section-icon,
+      .balance-negative {
+        color: var(--expense-deep);
       }
 
       .entry-group p {
@@ -426,7 +512,10 @@
       }
 
       .income-button {
-        background: var(--income);
+        width: 76px;
+        min-height: 76px;
+        font-size: 2.4rem;
+        background: var(--income-deep);
       }
 
       .income-button:hover {
@@ -434,7 +523,10 @@
       }
 
       .expense-button {
-        background: var(--expense);
+        width: 76px;
+        min-height: 76px;
+        font-size: 2.4rem;
+        background: #e22d4f;
       }
 
       .expense-button:hover {
@@ -445,6 +537,17 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
+      }
+
+      .expense-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        gap: 14px;
+        align-items: end;
+      }
+
+      .expense-grid .field:nth-child(3) {
+        grid-column: 1;
       }
 
       .add-button {
@@ -463,40 +566,23 @@
 
       .transactions {
         display: grid;
-        gap: 10px;
-        margin-top: 18px;
+        gap: 12px;
       }
 
       .transaction {
         display: grid;
-        grid-template-columns: 42px minmax(0, 1fr) auto auto;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         gap: 12px;
         align-items: center;
-        padding: 12px;
-        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-      }
-
-      .marker {
-        width: 42px;
-        aspect-ratio: 1;
-        border-radius: 8px;
-        display: grid;
-        place-items: center;
-        font-weight: 900;
-        color: #fff;
-      }
-
-      .income-marker {
-        background: var(--income);
-      }
-
-      .expense-marker {
-        background: var(--expense);
+        padding: 16px;
+        border-radius: 16px;
+        box-shadow: none;
       }
 
       .transaction strong {
         display: block;
         overflow-wrap: anywhere;
+        font-size: clamp(1.05rem, 3vw, 1.45rem);
       }
 
       .transaction small {
@@ -506,21 +592,34 @@
       .transaction-amount {
         font-weight: 900;
         white-space: nowrap;
+        font-size: clamp(1.05rem, 3vw, 1.55rem);
       }
 
       .remove {
-        width: 34px;
-        height: 34px;
+        width: 40px;
+        height: 40px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #fff;
         color: var(--muted);
         cursor: pointer;
+        display: grid;
+        place-items: center;
       }
 
       .remove:hover {
         border-color: #fecaca;
         color: var(--expense);
+      }
+
+      .remove svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
 
       .ai {
@@ -565,8 +664,7 @@
       }
 
       @media (max-width: 880px) {
-        .topbar,
-        .layout {
+        .topbar {
           display: block;
         }
 
@@ -580,11 +678,6 @@
           margin-top: 16px;
         }
 
-        .entry {
-          position: static;
-          margin-top: 18px;
-        }
-
         .stats {
           grid-template-columns: 1fr;
         }
@@ -596,23 +689,10 @@
           padding-top: 18px;
         }
 
-        .chart-area,
         .row,
+        .expense-grid,
         .transaction {
           grid-template-columns: 1fr;
-        }
-
-        .donut {
-          width: min(180px, 70vw);
-          justify-self: center;
-        }
-
-        .bar-row {
-          grid-template-columns: 76px minmax(0, 1fr);
-        }
-
-        .bar-row strong {
-          grid-column: 1 / -1;
         }
       }
     </style>
@@ -722,97 +802,96 @@
         </div>
       </header>
 
-      <section class="layout">
-        <div>
-          <section class="stats" aria-label="Budget summary">
-            <article class="stat">
-              <span class="label">Income</span>
-              <strong class="amount balance-positive" id="incomeTotal">R0</strong>
-            </article>
-            <article class="stat">
-              <span class="label">Expenses</span>
-              <strong class="amount balance-negative" id="expenseTotal">R0</strong>
-            </article>
-            <article class="stat">
-              <span class="label">Left Over</span>
-              <strong class="amount" id="balanceTotal">R0</strong>
-            </article>
-          </section>
+      <section class="stats" aria-label="Budget summary">
+        <article class="stat income-card">
+          <span class="label">Income</span>
+          <strong class="amount" id="incomeTotal">R0</strong>
+          <span class="stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 16l5-5 4 4 7-7" /><path d="M15 8h5v5" /></svg>
+          </span>
+        </article>
+        <article class="stat expense-card">
+          <span class="label">Expenses</span>
+          <strong class="amount" id="expenseTotal">R0</strong>
+          <span class="stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 8l5 5 4-4 7 7" /><path d="M15 16h5v-5" /></svg>
+          </span>
+        </article>
+        <article class="stat savings-card">
+          <span class="label">Net Savings</span>
+          <strong class="amount" id="balanceTotal">R0</strong>
+          <span class="stat-detail" id="savingsRate">0% savings rate</span>
+          <span class="stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 7h13a3 3 0 0 1 3 3v8H4z" /><path d="M4 7V5h12" /><path d="M16 14h4" /></svg>
+          </span>
+        </article>
+      </section>
 
-          <section class="panel">
-            <div class="chart-area">
-              <div class="donut" id="donut" aria-label="Income and expense chart"></div>
-              <div class="chart-copy">
-                <h2>Monthly Picture</h2>
-                <p class="subtitle" id="chartSummary">
-                  Add income and expenses to build your budget picture.
-                </p>
-                <span class="health" id="healthBadge">Ready to plan</span>
-              </div>
-            </div>
-            <div class="bars" aria-label="Income and expense bars">
-              <div class="bar-row">
-                <span>Income</span>
-                <div class="track"><div class="fill income-fill" id="incomeBar"></div></div>
-                <strong id="incomePercent">0%</strong>
-              </div>
-              <div class="bar-row">
-                <span>Expenses</span>
-                <div class="track"><div class="fill expense-fill" id="expenseBar"></div></div>
-                <strong id="expensePercent">0%</strong>
-              </div>
-            </div>
-          </section>
-
-          <section class="transactions" id="transactions" aria-label="Transactions"></section>
+      <section class="panel chart-card">
+        <h2>Spending by category</h2>
+        <div class="donut-wrap">
+          <div class="category-donut" id="categoryDonut" aria-label="Spending by category pie chart"></div>
         </div>
+        <div class="legend" id="categoryLegend"></div>
+      </section>
 
-        <aside class="panel entry">
-          <h2>Add Money</h2>
-          <div class="entry-stack">
-            <form class="entry-group" id="incomeForm">
-              <h3>Income</h3>
-              <p>Add salary, freelance work, gifts, or any money coming in.</p>
-              <label class="field">
-                <span>Income Name</span>
-                <input id="incomeName" type="text" placeholder="Salary, freelance, bonus" required />
-              </label>
-              <label class="field">
-                <span>Income Amount</span>
-                <input id="incomeAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required />
-              </label>
-              <button class="add-button income-button" type="submit">Add Income</button>
-            </form>
+      <section class="panel chart-card">
+        <h2>Category breakdown</h2>
+        <div class="bar-chart" id="categoryBars"></div>
+      </section>
 
-            <form class="entry-group" id="expenseForm">
-              <h3>Expenses</h3>
-              <p>Add spending with a category so the overview can spot patterns.</p>
-              <label class="field">
-                <span>Expense Name</span>
-                <input id="expenseName" type="text" placeholder="Rent, groceries, transport" required />
-              </label>
-              <label class="field">
-                <span>Expense Amount</span>
-                <input id="expenseAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required />
-              </label>
-              <label class="field">
-                <span>Category</span>
-                <select id="expenseCategory" required>
-                  <option value="Food">Food</option>
-                  <option value="Home">Home</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Subscriptions">Subscriptions</option>
-                  <option value="Debt">Debt</option>
-                  <option value="Shopping">Shopping</option>
-                  <option value="Health">Health</option>
-                  <option value="Entertainment">Entertainment</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
-              <button class="add-button expense-button" type="submit">Add Expense</button>
-            </form>
+      <section class="entry" aria-label="Money entry sections">
+        <form class="entry-group" id="incomeForm">
+          <h3>
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 16l5-5 4 4 7-7" /><path d="M15 8h5v5" /></svg></span>
+            Income
+          </h3>
+          <div class="row">
+            <label class="field">
+              <span>Source</span>
+              <input id="incomeName" type="text" placeholder="Source (e.g. Salary)" required />
+            </label>
+            <label class="field">
+              <span>Amount</span>
+              <input id="incomeAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="Amount" required />
+            </label>
           </div>
-        </aside>
+          <button class="add-button income-button" type="submit" aria-label="Add income">+</button>
+          <div class="transactions" id="incomeList" aria-label="Income list"></div>
+        </form>
+
+        <form class="entry-group" id="expenseForm">
+          <h3>
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8l5 5 4-4 7 7" /><path d="M15 16h5v-5" /></svg></span>
+            Expenses
+          </h3>
+          <div class="expense-grid">
+            <label class="field">
+              <span>Name</span>
+              <input id="expenseName" type="text" placeholder="Name (e.g. Rent)" required />
+            </label>
+            <label class="field">
+              <span>Category</span>
+              <select id="expenseCategory" required>
+                <option value="Housing">Housing</option>
+                <option value="Food">Food</option>
+                <option value="Subscriptions">Subscriptions</option>
+                <option value="Transport">Transport</option>
+                <option value="Debt">Debt</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Health">Health</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Amount</span>
+              <input id="expenseAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="Amount" required />
+            </label>
+            <button class="add-button expense-button" type="submit" aria-label="Add expense">+</button>
+          </div>
+          <div class="transactions" id="expenseList" aria-label="Expense list"></div>
+        </form>
       </section>
 
       <section class="panel ai" aria-label="AI overview">
@@ -836,12 +915,14 @@
 
       const state = {
         items: [
-          { id: 1, name: "Monthly salary", type: "income", amount: 18500, category: "Work" },
-          { id: 2, name: "Rent", type: "expense", amount: 7200, category: "Home" },
-          { id: 3, name: "Groceries", type: "expense", amount: 2600, category: "Food" },
-          { id: 4, name: "Transport", type: "expense", amount: 1300, category: "Travel" },
+          { id: 1, name: "Salary", type: "income", amount: 35000, category: "Income" },
+          { id: 2, name: "Rent", type: "expense", amount: 8000, category: "Housing" },
+          { id: 3, name: "Groceries", type: "expense", amount: 4500, category: "Food" },
+          { id: 4, name: "Streaming", type: "expense", amount: 200, category: "Subscriptions" },
         ],
       };
+
+      const categoryColors = ["#4f46e5", "#f97316", "#10b981", "#e11d48", "#06b6d4", "#facc15", "#7c3aed", "#111827", "#84cc16"];
 
       const accountKey = "budget-app-account";
       const accountForm = document.querySelector("#accountForm");
@@ -854,11 +935,12 @@
       const budgetApp = document.querySelector("#budgetApp");
       const incomeForm = document.querySelector("#incomeForm");
       const expenseForm = document.querySelector("#expenseForm");
-      const transactions = document.querySelector("#transactions");
+      const incomeList = document.querySelector("#incomeList");
+      const expenseList = document.querySelector("#expenseList");
       const aiOverview = document.querySelector("#aiOverview");
-      const donut = document.querySelector("#donut");
-      const incomeBar = document.querySelector("#incomeBar");
-      const expenseBar = document.querySelector("#expenseBar");
+      const categoryDonut = document.querySelector("#categoryDonut");
+      const categoryLegend = document.querySelector("#categoryLegend");
+      const categoryBars = document.querySelector("#categoryBars");
 
       accountForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -956,7 +1038,7 @@
         render();
       });
 
-      transactions.addEventListener("click", (event) => {
+      budgetApp.addEventListener("click", (event) => {
         const button = event.target.closest("button[data-id]");
         if (!button) return;
         state.items = state.items.filter((item) => item.id !== Number(button.dataset.id));
@@ -1003,90 +1085,111 @@
 
       function render() {
         const { income, expenses, balance } = totals();
-        const totalMovement = income + expenses;
         const expenseRatio = income > 0 ? expenses / income : 0;
-        const expenseAngle = totalMovement > 0 ? (expenses / totalMovement) * 360 : 0;
-        const incomePercent = totalMovement > 0 ? Math.round((income / totalMovement) * 100) : 0;
-        const expensePercent = totalMovement > 0 ? 100 - incomePercent : 0;
+        const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
 
         document.querySelector("#incomeTotal").textContent = money.format(income);
         document.querySelector("#expenseTotal").textContent = money.format(expenses);
         document.querySelector("#balanceTotal").textContent = money.format(balance);
-        document.querySelector("#balanceTotal").className = `amount ${balance >= 0 ? "balance-positive" : "balance-negative"}`;
+        document.querySelector("#savingsRate").textContent = `${Math.max(savingsRate, 0)}% savings rate`;
 
-        donut.style.setProperty("--expense-angle", `${expenseAngle}deg`);
-        incomeBar.style.setProperty("--width", `${incomePercent}%`);
-        expenseBar.style.setProperty("--width", `${expensePercent}%`);
-        document.querySelector("#incomePercent").textContent = `${incomePercent}%`;
-        document.querySelector("#expensePercent").textContent = `${expensePercent}%`;
-
-        updateHealth(expenseRatio, balance, income);
-        renderTransactions();
+        renderCategoryVisuals();
+        renderMoneyLists();
       }
 
-      function updateHealth(expenseRatio, balance, income) {
-        const badge = document.querySelector("#healthBadge");
-        const summary = document.querySelector("#chartSummary");
-
-        if (income === 0) {
-          badge.textContent = "Add income";
-          badge.style.background = "var(--warn)";
-          badge.style.color = "#92400e";
-          summary.textContent = "Start with your main income, then add your regular expenses.";
-          return;
-        }
-
-        if (balance < 0) {
-          badge.textContent = "Needs attention";
-          badge.style.background = "var(--bad)";
-          badge.style.color = "#991b1b";
-          summary.textContent = `You are over budget by ${money.format(Math.abs(balance))}.`;
-          return;
-        }
-
-        if (expenseRatio <= 0.7) {
-          badge.textContent = "Healthy budget";
-          badge.style.background = "var(--good)";
-          badge.style.color = "#166534";
-          summary.textContent = `You are keeping ${money.format(balance)} available after expenses.`;
-          return;
-        }
-
-        badge.textContent = "Watch spending";
-        badge.style.background = "var(--warn)";
-        badge.style.color = "#92400e";
-        summary.textContent = `You have ${money.format(balance)} left, but expenses are using most income.`;
+      function expenseCategoryData() {
+        return Object.entries(
+          state.items
+            .filter((item) => item.type === "expense")
+            .reduce((categories, item) => {
+              categories[item.category] = (categories[item.category] || 0) + item.amount;
+              return categories;
+            }, {})
+        )
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, amount], index) => ({
+            name,
+            amount,
+            color: categoryColors[index % categoryColors.length],
+          }));
       }
 
-      function renderTransactions() {
-        if (!state.items.length) {
-          transactions.innerHTML = `
-            <article class="transaction">
-              <div class="marker income-marker">+</div>
-              <div>
-                <strong>No items yet</strong>
-                <small>Add your first income or expense</small>
-              </div>
-            </article>
-          `;
+      function renderCategoryVisuals() {
+        const data = expenseCategoryData();
+        const total = data.reduce((sum, item) => sum + item.amount, 0);
+
+        if (!data.length || total <= 0) {
+          categoryDonut.style.background = "#e5e7eb";
+          categoryLegend.innerHTML = "<span>No expenses yet</span>";
+          categoryBars.innerHTML = "<p class=\"subtitle\">Add expenses to build the category graph.</p>";
           return;
         }
 
-        transactions.innerHTML = state.items
+        let cursor = 0;
+        const gradient = data
           .map((item) => {
-            const sign = item.type === "income" ? "+" : "-";
-            const markerClass = item.type === "income" ? "income-marker" : "expense-marker";
-            const amountClass = item.type === "income" ? "balance-positive" : "balance-negative";
+            const start = cursor;
+            cursor += (item.amount / total) * 360;
+            return `${item.color} ${start}deg ${cursor}deg`;
+          })
+          .join(", ");
 
+        categoryDonut.style.background = `conic-gradient(${gradient})`;
+        categoryLegend.innerHTML = data
+          .map((item) => `<span><i style="--dot: ${item.color}"></i>${escapeHtml(item.name)} ${money.format(item.amount)}</span>`)
+          .join("");
+
+        const topItems = data.slice(0, 4);
+        const maxAmount = Math.max(...topItems.map((item) => item.amount));
+        const axisTop = Math.ceil(maxAmount / 1000) * 1000;
+
+        categoryBars.innerHTML = `
+          <div class="bar-axis">
+            <span>${axisTop}</span>
+            <span>${Math.round(axisTop * 0.75)}</span>
+            <span>${Math.round(axisTop * 0.5)}</span>
+            <span>${Math.round(axisTop * 0.25)}</span>
+            <span>0</span>
+          </div>
+          <div class="bar-plot">
+            ${topItems
+              .map((item) => {
+                const height = Math.max((item.amount / axisTop) * 100, 3);
+                return `
+                  <div class="bar-column">
+                    <div class="bar-fill" style="--height: ${height}%;"></div>
+                    <span class="bar-label">${escapeHtml(item.name)}</span>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        `;
+      }
+
+      function renderMoneyLists() {
+        incomeList.innerHTML = renderListItems(state.items.filter((item) => item.type === "income"));
+        expenseList.innerHTML = renderListItems(state.items.filter((item) => item.type === "expense"));
+      }
+
+      function renderListItems(items) {
+        if (!items.length) {
+          return "<p class=\"subtitle\">No items added yet.</p>";
+        }
+
+        return items
+          .map((item) => {
+            const amountClass = item.type === "income" ? "balance-positive" : "balance-negative";
             return `
               <article class="transaction">
-                <div class="marker ${markerClass}">${sign}</div>
                 <div>
                   <strong>${escapeHtml(item.name)}</strong>
-                  <small>${escapeHtml(item.category)} · ${item.type}</small>
+                  <small>${escapeHtml(item.category)}</small>
                 </div>
-                <span class="transaction-amount ${amountClass}">${sign}${money.format(item.amount)}</span>
-                <button class="remove" type="button" data-id="${item.id}" aria-label="Remove ${escapeHtml(item.name)}">x</button>
+                <span class="transaction-amount ${amountClass}">${money.format(item.amount)}</span>
+                <button class="remove" type="button" data-id="${item.id}" aria-label="Remove ${escapeHtml(item.name)}">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M6 7l1 14h10l1-14" /><path d="M9 7V4h6v3" /></svg>
+                </button>
               </article>
             `;
           })
