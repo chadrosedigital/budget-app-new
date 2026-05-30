@@ -685,8 +685,146 @@
 
       @media (max-width: 560px) {
         .app {
-          width: min(100% - 20px, 1120px);
-          padding-top: 18px;
+          width: min(100% - 34px, 430px);
+          padding-top: 14px;
+        }
+
+        .topbar {
+          margin-bottom: 14px;
+        }
+
+        .topbar h1 {
+          font-size: 2rem;
+        }
+
+        .topbar .subtitle {
+          font-size: 0.9rem;
+        }
+
+        .stats {
+          gap: 14px;
+          margin-bottom: 18px;
+        }
+
+        .stat {
+          min-height: 150px;
+          border-radius: 22px;
+          padding: 22px 24px;
+        }
+
+        .label {
+          font-size: 1rem;
+        }
+
+        .amount {
+          margin-top: 24px;
+          font-size: clamp(2.65rem, 13vw, 3.8rem);
+        }
+
+        .stat-detail {
+          margin-top: 14px;
+          font-size: 1rem;
+        }
+
+        .stat-icon {
+          top: 24px;
+          right: 24px;
+          width: 58px;
+        }
+
+        .stat-icon svg {
+          width: 30px;
+          height: 30px;
+        }
+
+        .panel,
+        .entry-group {
+          border-radius: 22px;
+          padding: 22px;
+        }
+
+        .chart-card,
+        .ai {
+          margin-top: 18px;
+        }
+
+        .chart-card h2,
+        .entry h2,
+        .ai h2 {
+          margin-bottom: 14px;
+          font-size: 1.55rem;
+        }
+
+        .donut-wrap {
+          min-height: 260px;
+          padding: 12px 0 30px;
+        }
+
+        .category-donut {
+          width: min(260px, 68vw);
+        }
+
+        .legend {
+          row-gap: 8px;
+          column-gap: 12px;
+        }
+
+        .legend span {
+          gap: 6px;
+          font-size: 0.92rem;
+        }
+
+        .bar-chart {
+          grid-template-columns: 46px 1fr;
+          gap: 8px;
+          min-height: 245px;
+        }
+
+        .bar-axis {
+          font-size: 0.9rem;
+        }
+
+        .bar-plot {
+          gap: 14px;
+          padding: 0 4px 34px;
+        }
+
+        .bar-column {
+          min-width: 0;
+        }
+
+        .bar-fill {
+          width: min(100%, 70px);
+          border-radius: 8px 8px 0 0;
+        }
+
+        .bar-label {
+          bottom: -28px;
+          font-size: 0.85rem;
+          max-width: 84px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .entry {
+          gap: 18px;
+        }
+
+        .entry-group h3 {
+          font-size: 1.75rem;
+        }
+
+        input,
+        select {
+          min-height: 42px;
+          font-size: 1rem;
+        }
+
+        .income-button,
+        .expense-button {
+          width: 58px;
+          min-height: 58px;
+          font-size: 2rem;
         }
 
         .row,
