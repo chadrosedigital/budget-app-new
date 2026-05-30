@@ -171,12 +171,11 @@
       }
 
       .user-chip {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
+        position: relative;
+        display: inline-block;
       }
 
+      .account-toggle,
       .sign-out {
         min-height: 38px;
         border: 1px solid var(--line);
@@ -186,6 +185,43 @@
         color: var(--muted);
         font-weight: 800;
         cursor: pointer;
+      }
+
+      .account-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+      }
+
+      .account-toggle::after {
+        content: "⌄";
+        font-size: 1rem;
+        line-height: 1;
+      }
+
+      .account-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 10px);
+        z-index: 10;
+        width: min(320px, calc(100vw - 34px));
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+
+      .account-menu[hidden] {
+        display: none;
+      }
+
+      .account-details {
+        margin: 0 0 12px;
+        color: var(--muted);
+        line-height: 1.5;
+        overflow-wrap: anywhere;
       }
 
       .sign-out:hover {
@@ -935,8 +971,11 @@
           </p>
         </div>
         <div class="user-chip">
-          <div class="month-pill" id="accountLabel">Your account</div>
-          <button class="sign-out" type="button" id="signOutButton">Sign out</button>
+          <button class="account-toggle" type="button" id="accountToggle" aria-expanded="false" aria-controls="accountMenu">Account</button>
+          <div class="account-menu" id="accountMenu" hidden>
+            <p class="account-details" id="accountLabel">Your account</p>
+            <button class="sign-out" type="button" id="signOutButton">Sign out</button>
+          </div>
         </div>
       </header>
 
@@ -1071,6 +1110,8 @@
       const paymentNote = document.querySelector("#paymentNote");
       const planButton = document.querySelector("#planButton");
       const budgetApp = document.querySelector("#budgetApp");
+      const accountToggle = document.querySelector("#accountToggle");
+      const accountMenu = document.querySelector("#accountMenu");
       const incomeForm = document.querySelector("#incomeForm");
       const expenseForm = document.querySelector("#expenseForm");
       const incomeList = document.querySelector("#incomeList");
@@ -1079,6 +1120,18 @@
       const categoryDonut = document.querySelector("#categoryDonut");
       const categoryLegend = document.querySelector("#categoryLegend");
       const categoryBars = document.querySelector("#categoryBars");
+
+      accountToggle.addEventListener("click", () => {
+        const isOpen = !accountMenu.hidden;
+        accountMenu.hidden = isOpen;
+        accountToggle.setAttribute("aria-expanded", String(!isOpen));
+      });
+
+      document.addEventListener("click", (event) => {
+        if (accountMenu.hidden || event.target.closest(".user-chip")) return;
+        accountMenu.hidden = true;
+        accountToggle.setAttribute("aria-expanded", "false");
+      });
 
       accountForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -1391,7 +1444,9 @@
         }).format(new Date());
 
         const planName = account.planLabel || "Free";
-        document.querySelector("#accountLabel").textContent = `${account.name} · ${planName} · ${month}`;
+        document.querySelector("#accountLabel").textContent = `${account.name} · ${account.email} · ${planName} · ${month}`;
+        accountMenu.hidden = true;
+        accountToggle.setAttribute("aria-expanded", "false");
         authScreen.hidden = true;
         paymentScreen.hidden = true;
         budgetApp.hidden = false;
