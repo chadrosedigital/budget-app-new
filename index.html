@@ -1220,32 +1220,47 @@
       signupForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         setAuthStatus("Creating your account...");
+        setFormBusy(signupForm, true);
         const name = document.querySelector("#signupName").value.trim();
         const email = document.querySelector("#signupEmail").value.trim();
         const password = document.querySelector("#signupPassword").value;
 
-        if (!name || !email || password.length < 6) return;
-
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name },
-          },
-        });
-
-        if (error) {
-          setAuthStatus(error.message, "error");
+        if (!name || !email || password.length < 6) {
+          setAuthStatus("Please complete all signup fields. Password must be at least 6 characters.", "error");
+          setFormBusy(signupForm, false);
           return;
         }
 
-        signupForm.reset();
-        if (data.session) {
-          currentUser = data.user;
-          await continueAfterAuth();
-        } else {
-          setAuthStatus("Account created. Check your email to confirm your signup, then log in.", "success");
-          setAuthMode("login");
+        try {
+          const { data, error } = await withTimeout(
+            supabaseClient.auth.signUp({
+              email,
+              password,
+              options: {
+                data: { full_name: name },
+              },
+            }),
+            15000,
+            "Supabase did not respond. Please check your internet connection and try again."
+          );
+
+          if (error) {
+            setAuthStatus(error.message, "error");
+            return;
+          }
+
+          signupForm.reset();
+          if (data.session) {
+            currentUser = data.user;
+            await continueAfterAuth();
+          } else {
+            setAuthStatus("Account created. Check your email to confirm your signup, then log in.", "success");
+            setAuthMode("login");
+          }
+        } catch (error) {
+          setAuthStatus(error.message || "Could not create your account. Please try again.", "error");
+        } finally {
+          setFormBusy(signupForm, false);
         }
       });
 
@@ -1636,6 +1651,21 @@
       function setAuthStatus(message, type = "") {
         authStatus.textContent = message;
         authStatus.className = `auth-status ${type}`.trim();
+      }
+
+      function setFormBusy(form, isBusy) {
+        form.querySelectorAll("button, input").forEach((element) => {
+          element.disabled = isBusy;
+        });
+      }
+
+      function withTimeout(promise, timeoutMs, message) {
+        let timeoutId;
+        const timeout = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+        });
+
+        return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
       }
 
       async function startPayFastPayment() {
