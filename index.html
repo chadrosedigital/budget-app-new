@@ -745,6 +745,185 @@
         line-height: 1.65;
       }
 
+      @media (min-width: 1100px) {
+        .app {
+          width: min(1600px, calc(100% - 72px));
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 28px;
+          padding-top: 24px;
+        }
+
+        .topbar,
+        .stats,
+        .entry,
+        .ai {
+          grid-column: 1 / -1;
+        }
+
+        .topbar,
+        .stats {
+          margin-bottom: 0;
+        }
+
+        .stats {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 22px;
+        }
+
+        .stat {
+          min-height: 166px;
+          border-radius: 18px;
+          padding: 32px 28px 26px;
+        }
+
+        .label {
+          font-size: 1.05rem;
+        }
+
+        .amount {
+          margin-top: 30px;
+          font-size: clamp(2.5rem, 3.1vw, 3.8rem);
+        }
+
+        .stat-detail {
+          margin-top: 14px;
+          font-size: 1rem;
+        }
+
+        .stat-icon {
+          top: 26px;
+          right: 26px;
+          width: 52px;
+        }
+
+        .stat-icon svg,
+        .section-icon svg {
+          width: 28px;
+          height: 28px;
+        }
+
+        .panel,
+        .entry-group {
+          border-radius: 18px;
+          padding: 28px;
+        }
+
+        .chart-card,
+        .entry-panel,
+        .ai {
+          margin-top: 0;
+        }
+
+        .chart-card {
+          min-height: 360px;
+        }
+
+        .chart-card h2,
+        .entry h2,
+        .ai h2 {
+          font-size: 1.2rem;
+          margin-bottom: 20px;
+        }
+
+        .donut-wrap {
+          min-height: 250px;
+          padding: 8px 0 26px;
+        }
+
+        .category-donut {
+          width: min(250px, 32vw);
+        }
+
+        .legend {
+          padding-top: 4px;
+        }
+
+        .bar-chart {
+          min-height: 272px;
+          grid-template-columns: 58px 1fr;
+        }
+
+        .bar-axis {
+          font-size: 0.95rem;
+        }
+
+        .bar-plot {
+          gap: clamp(22px, 4vw, 58px);
+          padding: 0 8px 34px;
+        }
+
+        .bar-column {
+          min-width: 0;
+        }
+
+        .bar-fill {
+          width: min(100%, 150px);
+        }
+
+        .bar-label {
+          bottom: -30px;
+          font-size: 0.95rem;
+        }
+
+        .entry {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 28px;
+        }
+
+        .entry-group {
+          align-content: start;
+          gap: 18px;
+        }
+
+        .entry-group h3 {
+          font-size: 1.55rem;
+        }
+
+        #incomeForm {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        #incomeForm h3,
+        #incomeForm .transactions {
+          grid-column: 1 / -1;
+        }
+
+        #incomeForm .row {
+          grid-template-columns: minmax(0, 1fr) minmax(130px, 160px);
+          align-items: end;
+        }
+
+        .expense-grid {
+          grid-template-columns: minmax(0, 1.3fr) minmax(150px, 0.85fr) minmax(120px, 0.75fr) auto;
+          gap: 12px;
+        }
+
+        .expense-grid .field:nth-child(3) {
+          grid-column: auto;
+        }
+
+        .income-button,
+        .expense-button {
+          width: 58px;
+          min-height: 52px;
+          font-size: 1.8rem;
+        }
+
+        .transaction {
+          border-radius: 10px;
+          padding: 14px 16px;
+        }
+
+        .transaction strong {
+          font-size: 1.05rem;
+        }
+
+        .transaction-amount {
+          font-size: 1.15rem;
+        }
+      }
+
       @media (max-width: 880px) {
         .topbar {
           display: block;
