@@ -43,12 +43,23 @@ Authentication is connected to:
 
 The app supports signup, login, logout, and password reset. Add your deployed site URL to the Supabase Auth redirect URLs so email confirmations and password reset links return to the app correctly.
 
+## Supabase Budget Saving
+
+Each logged-in user's income, expenses, goals, and budget amounts are saved in Supabase under their own `user_id`.
+
+Before using the app, open the Supabase SQL Editor and run the SQL in:
+
+`supabase-user-budgets.sql`
+
+This creates the `public.user_budgets` table and turns on Row Level Security. The policies only allow authenticated users to read, create, update, or delete rows where `user_id` matches their own Supabase account.
+
 ## Deploying to Vercel
 
 Upload or push these files at the root of your GitHub repository:
 
 - `index.html`
 - `api/`
+- `supabase-user-budgets.sql`
 - `package.json`
 - `vercel.json`
 - `README.md`

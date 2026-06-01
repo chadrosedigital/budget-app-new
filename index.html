@@ -1168,19 +1168,26 @@
         maximumFractionDigits: 0,
       });
 
-      const state = {
+      const USER_BUDGET_TABLE = "user_budgets";
+      const defaultBudgetState = {
         items: [
           { id: 1, name: "Salary", type: "income", amount: 35000, category: "Income" },
           { id: 2, name: "Rent", type: "expense", amount: 8000, category: "Housing" },
           { id: 3, name: "Groceries", type: "expense", amount: 4500, category: "Food" },
           { id: 4, name: "Streaming", type: "expense", amount: 200, category: "Subscriptions" },
         ],
+        goals: [],
+        budgets: {},
       };
 
+      const state = createDefaultBudgetState();
       const categoryColors = ["#4f46e5", "#f97316", "#10b981", "#e11d48", "#06b6d4", "#facc15", "#7c3aed", "#111827", "#84cc16"];
 
       let currentUser = null;
       let currentAccess = null;
+      let budgetDataLoadedForUserId = null;
+      let budgetSaveTimer = null;
+      let isLoadingBudgetData = false;
       const signupForm = document.querySelector("#signupForm");
       const loginForm = document.querySelector("#loginForm");
       const resetForm = document.querySelector("#resetForm");
@@ -1333,7 +1340,7 @@
         if (selectedPlan === "trial") {
           currentAccess = await fetchAccessStatus({ startTrial: true });
           if (currentAccess.allowed) {
-            showBudgetApp();
+            await showBudgetApp();
             return;
           }
           paymentNote.textContent =
@@ -1353,6 +1360,7 @@
 
       document.querySelector("#signOutButton").addEventListener("click", async () => {
         await supabaseClient.auth.signOut();
+        resetBudgetSession();
         currentUser = null;
         showAuthScreen();
       });
@@ -1374,6 +1382,7 @@
 
         incomeForm.reset();
         render();
+        saveBudgetData({ immediate: true });
       });
 
       expenseForm.addEventListener("submit", (event) => {
@@ -1394,6 +1403,7 @@
 
         expenseForm.reset();
         render();
+        saveBudgetData({ immediate: true });
       });
 
       budgetApp.addEventListener("click", (event) => {
@@ -1401,6 +1411,7 @@
         if (!button) return;
         state.items = state.items.filter((item) => item.id !== Number(button.dataset.id));
         render();
+        saveBudgetData({ immediate: true });
       });
 
       document.querySelector("#overviewButton").addEventListener("click", () => {
@@ -1609,7 +1620,7 @@
       }
 
       function escapeHtml(value) {
-        return value.replace(/[&<>"']/g, (char) => {
+        return String(value).replace(/[&<>"']/g, (char) => {
           const replacements = {
             "&": "&amp;",
             "<": "&lt;",
@@ -1621,6 +1632,123 @@
         });
       }
 
+      function createDefaultBudgetState() {
+        return cloneBudgetState(defaultBudgetState);
+      }
+
+      function cloneBudgetState(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function serializeBudgetState() {
+        return {
+          items: state.items,
+          goals: state.goals || [],
+          budgets: state.budgets || {},
+        };
+      }
+
+      function normalizeBudgetData(data) {
+        const source = data && typeof data === "object" ? data : {};
+        const items = Array.isArray(source.items) ? source.items : [];
+
+        return {
+          items: items
+            .map((item, index) => {
+              const type = item.type === "expense" ? "expense" : "income";
+              return {
+                id: Number(item.id) || Date.now() + index,
+                name: String(item.name || (type === "expense" ? "Expense" : "Income")),
+                type,
+                amount: Number(item.amount) || 0,
+                category: String(item.category || (type === "expense" ? "Other" : "Income")),
+              };
+            })
+            .filter((item) => item.amount > 0),
+          goals: Array.isArray(source.goals) ? source.goals : [],
+          budgets: source.budgets && typeof source.budgets === "object" ? source.budgets : {},
+        };
+      }
+
+      function setBudgetState(nextState) {
+        const normalized = normalizeBudgetData(nextState);
+        state.items = normalized.items;
+        state.goals = normalized.goals;
+        state.budgets = normalized.budgets;
+      }
+
+      function resetBudgetSession() {
+        if (budgetSaveTimer) {
+          clearTimeout(budgetSaveTimer);
+          budgetSaveTimer = null;
+        }
+        budgetDataLoadedForUserId = null;
+        isLoadingBudgetData = false;
+        setBudgetState(createDefaultBudgetState());
+      }
+
+      async function loadBudgetData() {
+        if (!currentUser) return;
+        if (budgetDataLoadedForUserId === currentUser.id) return;
+
+        isLoadingBudgetData = true;
+        try {
+          const { data, error } = await supabaseClient
+            .from(USER_BUDGET_TABLE)
+            .select("data")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (data?.data) {
+            setBudgetState(data.data);
+          } else {
+            setBudgetState(createDefaultBudgetState());
+            await saveBudgetData({ immediate: true, force: true });
+          }
+
+          budgetDataLoadedForUserId = currentUser.id;
+        } catch (error) {
+          console.error("Could not load budget data", error);
+          setBudgetState(createDefaultBudgetState());
+        } finally {
+          isLoadingBudgetData = false;
+        }
+      }
+
+      async function saveBudgetData({ immediate = false, force = false } = {}) {
+        if (!currentUser || (isLoadingBudgetData && !force)) return;
+        const userId = currentUser.id;
+
+        const save = async () => {
+          const { error } = await supabaseClient.from(USER_BUDGET_TABLE).upsert(
+            {
+              user_id: userId,
+              data: serializeBudgetState(),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id" }
+          );
+
+          if (error) {
+            console.error("Could not save budget data", error);
+          }
+        };
+
+        if (budgetSaveTimer) {
+          clearTimeout(budgetSaveTimer);
+          budgetSaveTimer = null;
+        }
+
+        if (immediate) {
+          await save();
+          return;
+        }
+
+        budgetSaveTimer = setTimeout(save, 500);
+      }
+
       async function continueAfterAuth() {
         if (!currentUser) {
           showAuthScreen();
@@ -1629,7 +1757,7 @@
 
         currentAccess = await fetchAccessStatus();
         if (currentAccess.allowed) {
-          showBudgetApp();
+          await showBudgetApp();
         } else {
           showPaymentScreen();
         }
@@ -1777,7 +1905,7 @@
           await refreshCurrentUser();
           currentAccess = await fetchAccessStatus();
           if (currentAccess.allowed && currentAccess.reason === "paid") {
-            showBudgetApp();
+            await showBudgetApp();
             return;
           }
           await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -1786,7 +1914,8 @@
         showPaymentScreen();
       }
 
-      function showBudgetApp() {
+      async function showBudgetApp() {
+        await loadBudgetData();
         const plan = getSelectedPlan();
         const month = new Intl.DateTimeFormat("en-ZA", {
           month: "long",
