@@ -2,12 +2,12 @@
 
 A simple visual budget app for tracking income, expenses, leftover balance, and basic AI-style money advice.
 
-The app includes Supabase Authentication and a PayFast payment gate with two plans:
+The app includes Supabase Authentication and a PayFast payment gate with two access options:
 
-- Free
+- 3-day free trial
 - Premium: R50 once-off
 
-The Free plan opens the dashboard immediately. The Premium plan uses PayFast hosted checkout and is confirmed through ITN before lifetime access is marked in Supabase.
+New users receive full app access during a 3-day trial. The trial start and end dates are stored securely in Supabase `app_metadata`. After the trial expires, access is blocked unless PayFast has confirmed the R50 once-off Premium payment.
 
 ## PayFast Lifetime Payment
 
@@ -31,6 +31,8 @@ Set these environment variables in Vercel:
 - `PAYFAST_PASSPHRASE`
 
 Use the merchant details from your PayFast account. Do not place the merchant key, passphrase, or Supabase service role key in browser code.
+
+The app also uses `/api/access-status` to create/check trial access and paid lifetime access.
 
 ## Supabase Authentication
 

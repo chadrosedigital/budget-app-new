@@ -997,19 +997,18 @@
       <div class="payment-card">
         <h1>Choose Your Plan</h1>
         <p class="subtitle">
-          Pick a plan to unlock the budget dashboard. The paid plan uses a demo
-          payment form in this static version.
+          Start with a 3-day free trial or unlock lifetime access with one R50 payment.
         </p>
         <form id="paymentForm">
           <div class="pricing-grid" role="radiogroup" aria-label="Plan">
             <label class="plan-card">
-              <input type="radio" name="plan" value="free" checked />
-              <span class="plan-name">Free</span>
-              <strong class="plan-price">R0 <span>/ forever</span></strong>
+              <input type="radio" name="plan" value="trial" checked />
+              <span class="plan-name">3-Day Free Trial</span>
+              <strong class="plan-price">R0 <span>/ 3 days</span></strong>
               <ul>
-                <li>Income and expense tracking</li>
-                <li>Budget chart</li>
-                <li>Basic AI overview</li>
+                <li>Full app access</li>
+                <li>No payment needed</li>
+                <li>Ends automatically after 3 days</li>
               </ul>
             </label>
             <label class="plan-card">
@@ -1017,7 +1016,7 @@
               <span class="plan-name">Premium</span>
               <strong class="plan-price">R50 <span>once-off</span></strong>
               <ul>
-                <li>Everything in Free</li>
+                <li>Everything in the trial</li>
                 <li>Advanced advice prompts</li>
                 <li>One-time unlock</li>
               </ul>
@@ -1025,10 +1024,10 @@
           </div>
 
           <p class="payment-note" id="paymentNote">
-            Free plan selected. No payment details are needed.
+            Trial selected. New users get full access for 3 days.
           </p>
 
-          <button class="add-button" type="submit" id="planButton">Continue Free</button>
+          <button class="add-button" type="submit" id="planButton">Start 3-Day Trial</button>
         </form>
       </div>
     </section>
@@ -1179,6 +1178,7 @@
       const categoryColors = ["#4f46e5", "#f97316", "#10b981", "#e11d48", "#06b6d4", "#facc15", "#7c3aed", "#111827", "#84cc16"];
 
       let currentUser = null;
+      let currentAccess = null;
       const signupForm = document.querySelector("#signupForm");
       const loginForm = document.querySelector("#loginForm");
       const resetForm = document.querySelector("#resetForm");
@@ -1313,25 +1313,22 @@
           return;
         }
 
-        const planDetails = plans[selectedPlan];
-        if (selectedPlan !== "free") {
-          await startPayFastPayment();
+        if (selectedPlan === "trial") {
+          currentAccess = await fetchAccessStatus();
+          if (currentAccess.allowed) {
+            showBudgetApp();
+            return;
+          }
+          paymentNote.textContent = "Your 3-day trial has expired. Please choose the R50 once-off payment for lifetime access.";
+          document.querySelector("input[name='plan'][value='onceoff']").checked = true;
+          updatePaymentFields();
           return;
         }
 
-        localStorage.setItem(
-          planStorageKey(),
-          JSON.stringify({
-            userId: currentUser.id,
-            plan: selectedPlan,
-            paymentStatus: selectedPlan === "free" ? "free" : "demo-paid",
-            planLabel: planDetails.label,
-            planPrice: planDetails.price,
-            planStartedAt: new Date().toISOString(),
-          })
-        );
-
-        showBudgetApp();
+        if (selectedPlan === "onceoff") {
+          await startPayFastPayment();
+          return;
+        }
       });
 
       document.querySelector("#signOutButton").addEventListener("click", async () => {
@@ -1393,11 +1390,11 @@
       });
 
       const plans = {
-        free: {
-          label: "Free",
+        trial: {
+          label: "3-Day Free Trial",
           price: "R0",
-          note: "Free plan selected. No payment details are needed.",
-          button: "Continue Free",
+          note: "Trial selected. New users get full access for 3 days.",
+          button: "Start 3-Day Trial",
         },
         onceoff: {
           label: "Premium",
@@ -1407,15 +1404,8 @@
         },
       };
 
-      function planStorageKey() {
-        return currentUser ? `budget-app-plan:${currentUser.id}` : null;
-      }
-
       function getSelectedPlan() {
-        const key = planStorageKey();
-        if (!key) return null;
-
-        if (currentUser?.app_metadata?.payfast_paid) {
+        if (currentAccess?.reason === "paid" || currentUser?.app_metadata?.payfast_paid) {
           return {
             userId: currentUser.id,
             plan: "onceoff",
@@ -1425,11 +1415,17 @@
           };
         }
 
-        try {
-          return JSON.parse(localStorage.getItem(key));
-        } catch {
-          return null;
+        if (currentAccess?.reason === "trial") {
+          return {
+            userId: currentUser.id,
+            plan: "trial",
+            paymentStatus: "trial",
+            planLabel: "3-Day Trial",
+            planPrice: "R0",
+          };
         }
+
+        return null;
       }
 
       function totals() {
@@ -1611,7 +1607,8 @@
           return;
         }
 
-        if (getSelectedPlan()?.plan) {
+        currentAccess = await fetchAccessStatus();
+        if (currentAccess.allowed) {
           showBudgetApp();
         } else {
           showPaymentScreen();
@@ -1710,11 +1707,40 @@
         return currentUser;
       }
 
+      async function fetchAccessStatus() {
+        const { data } = await supabaseClient.auth.getSession();
+        const accessToken = data.session?.access_token;
+        if (!accessToken) {
+          return { allowed: false, reason: "no_session" };
+        }
+
+        const response = await fetch("/api/access-status", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const payload = await parseJsonResponse(response);
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Could not check account access");
+        }
+
+        if (payload.app_metadata) {
+          currentUser = {
+            ...currentUser,
+            app_metadata: payload.app_metadata,
+          };
+        }
+
+        return payload;
+      }
+
       async function waitForPayFastConfirmation() {
         paymentNote.textContent = "Payment received. Waiting for PayFast confirmation...";
         for (let attempt = 0; attempt < 10; attempt += 1) {
           await refreshCurrentUser();
-          if (currentUser?.app_metadata?.payfast_paid) {
+          currentAccess = await fetchAccessStatus();
+          if (currentAccess.allowed && currentAccess.reason === "paid") {
             showBudgetApp();
             return;
           }
@@ -1732,7 +1758,7 @@
         }).format(new Date());
 
         const displayName = currentUser?.user_metadata?.full_name || currentUser?.email || "Account";
-        const planName = plan?.planLabel || "Free";
+        const planName = plan?.planLabel || "3-Day Trial";
         document.querySelector("#accountLabel").textContent = `${displayName} · ${currentUser.email} · ${planName} · ${month}`;
         accountMenu.hidden = true;
         accountToggle.setAttribute("aria-expanded", "false");
@@ -1747,6 +1773,9 @@
         budgetApp.hidden = true;
         paymentScreen.hidden = false;
         planButton.disabled = false;
+        if (currentAccess?.reason === "trial_expired") {
+          document.querySelector("input[name='plan'][value='onceoff']").checked = true;
+        }
         updatePaymentFields();
       }
 
@@ -1761,9 +1790,11 @@
       function updatePaymentFields() {
         const selectedPlan = document.querySelector("input[name='plan']:checked").value;
         const planDetails = plans[selectedPlan];
-        const requiresPayment = selectedPlan !== "free";
 
-        paymentNote.textContent = planDetails.note;
+        paymentNote.textContent =
+          selectedPlan === "trial" && currentAccess?.reason === "trial_expired"
+            ? "Your 3-day free trial has expired. Choose the R50 once-off payment for lifetime access."
+            : planDetails.note;
         planButton.textContent = planDetails.button;
       }
 
@@ -1794,7 +1825,7 @@
           if (params.get("payment") === "cancelled") {
             window.history.replaceState({}, "", window.location.pathname);
             showPaymentScreen();
-            paymentNote.textContent = "Payment was cancelled. You can choose Free or try PayFast again.";
+            paymentNote.textContent = "Payment was cancelled. You can start a trial if available or try PayFast again.";
             return;
           }
           await continueAfterAuth();

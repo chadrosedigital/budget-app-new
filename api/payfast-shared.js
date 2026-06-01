@@ -40,10 +40,34 @@ async function verifySupabaseUser(accessToken) {
 }
 
 async function markSupabaseUserPaid(userId, payment) {
+  return updateSupabaseAppMetadata(userId, {
+    payfast_paid: true,
+    plan: "premium",
+    lifetime_access: true,
+    payment_status: payment.payment_status,
+    payment_amount: payment.amount_gross,
+    payfast_payment_id: payment.pf_payment_id,
+    paid_at: new Date().toISOString(),
+  });
+}
+
+async function updateSupabaseAppMetadata(userId, metadata) {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error("Supabase service role environment variables are not configured on the server");
   }
 
+  const currentResponse = await fetch(`${process.env.SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+    headers: {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+
+  if (!currentResponse.ok) {
+    throw new Error(`Supabase user lookup failed: ${await currentResponse.text()}`);
+  }
+
+  const currentUser = await currentResponse.json();
   const response = await fetch(`${process.env.SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
     method: "PUT",
     headers: {
@@ -53,13 +77,8 @@ async function markSupabaseUserPaid(userId, payment) {
     },
     body: JSON.stringify({
       app_metadata: {
-        payfast_paid: true,
-        plan: "premium",
-        lifetime_access: true,
-        payment_status: payment.payment_status,
-        payment_amount: payment.amount_gross,
-        payfast_payment_id: payment.pf_payment_id,
-        paid_at: new Date().toISOString(),
+        ...(currentUser.app_metadata || {}),
+        ...metadata,
       },
     }),
   });
@@ -89,6 +108,7 @@ module.exports = {
   createSignature,
   markSupabaseUserPaid,
   signatureString,
+  updateSupabaseAppMetadata,
   verifyPayFastItn,
   verifySupabaseUser,
 };
