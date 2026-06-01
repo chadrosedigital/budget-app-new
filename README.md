@@ -2,13 +2,29 @@
 
 A simple visual budget app for tracking income, expenses, leftover balance, and basic AI-style money advice.
 
-The app includes Supabase Authentication and a demo payment gate with three plans:
+The app includes Supabase Authentication and a PayFast payment gate with two plans:
 
 - Free
-- Pro Monthly: R49/month
-- Pro Yearly: R299/year
+- Premium: R50 once-off
 
-The payment form is a static demo only. Real payments require a secure backend and a payment provider such as Stripe, PayFast, Peach Payments, or Yoco.
+The Free plan opens the dashboard immediately. The Premium plan uses PayFast hosted checkout and is confirmed through ITN before lifetime access is marked in Supabase.
+
+## PayFast Lifetime Payment
+
+The Premium plan redirects to PayFast and charges `R50.00` once-off for lifetime access. Payment confirmation is handled by the PayFast ITN endpoint:
+
+`/api/payfast-itn`
+
+Set these environment variables in Vercel:
+
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `PAYFAST_MERCHANT_ID`
+- `PAYFAST_MERCHANT_KEY`
+- `PAYFAST_PASSPHRASE`
+
+Use the merchant details from your PayFast account. Do not place the merchant key, passphrase, or Supabase service role key in browser code.
 
 ## Supabase Authentication
 
@@ -24,6 +40,8 @@ The app supports signup, login, logout, and password reset. Add your deployed si
 Upload or push these files at the root of your GitHub repository:
 
 - `index.html`
+- `api/`
+- `package.json`
 - `vercel.json`
 - `README.md`
 

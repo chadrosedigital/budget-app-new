@@ -143,7 +143,7 @@
 
       .pricing-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
         margin: 20px 0;
       }
@@ -997,7 +997,7 @@
       <div class="payment-card">
         <h1>Choose Your Plan</h1>
         <p class="subtitle">
-          Pick a plan to unlock the budget dashboard. Paid plans use a demo
+          Pick a plan to unlock the budget dashboard. The paid plan uses a demo
           payment form in this static version.
         </p>
         <form id="paymentForm">
@@ -1013,23 +1013,13 @@
               </ul>
             </label>
             <label class="plan-card">
-              <input type="radio" name="plan" value="monthly" />
-              <span class="plan-name">Pro Monthly</span>
-              <strong class="plan-price">R49 <span>/ month</span></strong>
+              <input type="radio" name="plan" value="onceoff" />
+              <span class="plan-name">Premium</span>
+              <strong class="plan-price">R50 <span>once-off</span></strong>
               <ul>
                 <li>Everything in Free</li>
                 <li>Advanced advice prompts</li>
-                <li>Monthly planning focus</li>
-              </ul>
-            </label>
-            <label class="plan-card">
-              <input type="radio" name="plan" value="yearly" />
-              <span class="plan-name">Pro Yearly</span>
-              <strong class="plan-price">R299 <span>/ year</span></strong>
-              <ul>
-                <li>Best value plan</li>
-                <li>Everything in Pro Monthly</li>
-                <li>Annual savings focus</li>
+                <li>One-time unlock</li>
               </ul>
             </label>
           </div>
@@ -1037,21 +1027,6 @@
           <p class="payment-note" id="paymentNote">
             Free plan selected. No payment details are needed.
           </p>
-
-          <div class="payment-details" id="paymentDetails" hidden>
-            <label class="field">
-              <span>Card Number</span>
-              <input id="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="4242 4242 4242 4242" />
-            </label>
-            <label class="field">
-              <span>Expiry</span>
-              <input id="cardExpiry" type="text" autocomplete="cc-exp" placeholder="MM/YY" />
-            </label>
-            <label class="field">
-              <span>CVC</span>
-              <input id="cardCvc" type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="123" />
-            </label>
-          </div>
 
           <button class="add-button" type="submit" id="planButton">Continue Free</button>
         </form>
@@ -1212,7 +1187,6 @@
       const authScreen = document.querySelector("#authScreen");
       const paymentScreen = document.querySelector("#paymentScreen");
       const paymentForm = document.querySelector("#paymentForm");
-      const paymentDetails = document.querySelector("#paymentDetails");
       const paymentNote = document.querySelector("#paymentNote");
       const planButton = document.querySelector("#planButton");
       const budgetApp = document.querySelector("#budgetApp");
@@ -1331,7 +1305,7 @@
 
       paymentForm.addEventListener("change", updatePaymentFields);
 
-      paymentForm.addEventListener("submit", (event) => {
+      paymentForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const selectedPlan = document.querySelector("input[name='plan']:checked").value;
         if (!currentUser) {
@@ -1339,9 +1313,12 @@
           return;
         }
 
-        if (selectedPlan !== "free" && !paymentDetailsComplete()) return;
-
         const planDetails = plans[selectedPlan];
+        if (selectedPlan !== "free") {
+          await startPayFastPayment();
+          return;
+        }
+
         localStorage.setItem(
           planStorageKey(),
           JSON.stringify({
@@ -1422,17 +1399,11 @@
           note: "Free plan selected. No payment details are needed.",
           button: "Continue Free",
         },
-        monthly: {
-          label: "Pro Monthly",
-          price: "R49/month",
-          note: "Pro Monthly selected. Enter demo card details to continue.",
-          button: "Pay R49 Monthly",
-        },
-        yearly: {
-          label: "Pro Yearly",
-          price: "R299/year",
-          note: "Pro Yearly selected. Enter demo card details to continue.",
-          button: "Pay R299 Yearly",
+        onceoff: {
+          label: "Premium",
+          price: "R50 once-off",
+          note: "Premium selected. You will be redirected to PayFast for the secure once-off R50 payment.",
+          button: "Pay R50 with PayFast",
         },
       };
 
@@ -1443,6 +1414,16 @@
       function getSelectedPlan() {
         const key = planStorageKey();
         if (!key) return null;
+
+        if (currentUser?.app_metadata?.payfast_paid) {
+          return {
+            userId: currentUser.id,
+            plan: "onceoff",
+            paymentStatus: "paid",
+            planLabel: "Premium",
+            planPrice: "R50 once-off",
+          };
+        }
 
         try {
           return JSON.parse(localStorage.getItem(key));
@@ -1660,6 +1641,75 @@
         authStatus.className = `auth-status ${type}`.trim();
       }
 
+      async function startPayFastPayment() {
+        planButton.disabled = true;
+        paymentNote.textContent = "Preparing secure PayFast checkout...";
+
+        try {
+          const { data } = await supabaseClient.auth.getSession();
+          const accessToken = data.session?.access_token;
+          if (!accessToken) {
+            showAuthScreen();
+            return;
+          }
+
+          const response = await fetch("/api/payfast-create-payment", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(payload.error || "Could not start PayFast payment");
+          }
+
+          submitPayFastForm(payload.action, payload.fields);
+        } catch (error) {
+          paymentNote.textContent = error.message || "Payment could not be started. Please try again.";
+          planButton.disabled = false;
+        }
+      }
+
+      function submitPayFastForm(action, fields) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = action;
+        form.hidden = true;
+
+        Object.entries(fields).forEach(([name, value]) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      }
+
+      async function refreshCurrentUser() {
+        const { data } = await supabaseClient.auth.getUser();
+        currentUser = data.user || currentUser;
+        return currentUser;
+      }
+
+      async function waitForPayFastConfirmation() {
+        paymentNote.textContent = "Payment received. Waiting for PayFast confirmation...";
+        for (let attempt = 0; attempt < 10; attempt += 1) {
+          await refreshCurrentUser();
+          if (currentUser?.app_metadata?.payfast_paid) {
+            showBudgetApp();
+            return;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+        paymentNote.textContent = "PayFast confirmation is still processing. Please refresh in a moment.";
+        showPaymentScreen();
+      }
+
       function showBudgetApp() {
         const plan = getSelectedPlan();
         const month = new Intl.DateTimeFormat("en-ZA", {
@@ -1682,6 +1732,7 @@
         authScreen.hidden = true;
         budgetApp.hidden = true;
         paymentScreen.hidden = false;
+        planButton.disabled = false;
         updatePaymentFields();
       }
 
@@ -1698,19 +1749,8 @@
         const planDetails = plans[selectedPlan];
         const requiresPayment = selectedPlan !== "free";
 
-        paymentDetails.hidden = !requiresPayment;
         paymentNote.textContent = planDetails.note;
         planButton.textContent = planDetails.button;
-        document.querySelector("#cardNumber").required = requiresPayment;
-        document.querySelector("#cardExpiry").required = requiresPayment;
-        document.querySelector("#cardCvc").required = requiresPayment;
-      }
-
-      function paymentDetailsComplete() {
-        const cardNumber = document.querySelector("#cardNumber").value.trim();
-        const cardExpiry = document.querySelector("#cardExpiry").value.trim();
-        const cardCvc = document.querySelector("#cardCvc").value.trim();
-        return cardNumber.length >= 12 && cardExpiry.length >= 4 && cardCvc.length >= 3;
       }
 
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -1730,6 +1770,19 @@
         currentUser = data.session?.user || null;
 
         if (currentUser) {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get("payment") === "return") {
+            window.history.replaceState({}, "", window.location.pathname);
+            showPaymentScreen();
+            await waitForPayFastConfirmation();
+            return;
+          }
+          if (params.get("payment") === "cancelled") {
+            window.history.replaceState({}, "", window.location.pathname);
+            showPaymentScreen();
+            paymentNote.textContent = "Payment was cancelled. You can choose Free or try PayFast again.";
+            return;
+          }
           await continueAfterAuth();
         } else {
           showAuthScreen();
