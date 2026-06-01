@@ -90,6 +90,48 @@
         gap: 12px;
       }
 
+      .auth-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 18px 0;
+      }
+
+      .auth-tab {
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--muted);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .auth-tab.active {
+        border-color: var(--accent);
+        background: #eef2ff;
+        color: var(--ink);
+      }
+
+      .auth-panel[hidden] {
+        display: none;
+      }
+
+      .auth-status {
+        min-height: 24px;
+        margin: 12px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .auth-status.error {
+        color: var(--expense-deep);
+      }
+
+      .auth-status.success {
+        color: var(--income-deep);
+      }
+
       .payment-card {
         width: min(100%, 960px);
         padding: 24px;
@@ -892,25 +934,62 @@
   <body>
     <section class="auth-screen" id="authScreen">
       <div class="auth-card">
-        <h1>Create Account</h1>
+        <h1>Account</h1>
         <p class="subtitle">
-          Set up a basic local account before opening your budget dashboard.
+          Log in or create an account to open your budget dashboard.
         </p>
-        <form class="auth-form" id="accountForm">
+
+        <div class="auth-tabs" role="tablist" aria-label="Authentication options">
+          <button class="auth-tab active" type="button" data-auth-mode="signup">Sign up</button>
+          <button class="auth-tab" type="button" data-auth-mode="login">Log in</button>
+          <button class="auth-tab" type="button" data-auth-mode="reset">Reset</button>
+        </div>
+
+        <form class="auth-form auth-panel" id="signupForm">
           <label class="field">
             <span>Name</span>
-            <input id="accountName" type="text" autocomplete="name" placeholder="Your name" required />
+            <input id="signupName" type="text" autocomplete="name" placeholder="Your name" required />
           </label>
           <label class="field">
             <span>Email</span>
-            <input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+            <input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
           </label>
           <label class="field">
             <span>Password</span>
-            <input id="accountPassword" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required />
+            <input id="signupPassword" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required />
           </label>
           <button class="add-button" type="submit">Create Account</button>
         </form>
+
+        <form class="auth-form auth-panel" id="loginForm" hidden>
+          <label class="field">
+            <span>Email</span>
+            <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password" required />
+          </label>
+          <button class="add-button" type="submit">Log In</button>
+        </form>
+
+        <form class="auth-form auth-panel" id="resetForm" hidden>
+          <label class="field">
+            <span>Email</span>
+            <input id="resetEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </label>
+          <button class="add-button" type="submit">Send Reset Link</button>
+        </form>
+
+        <form class="auth-form auth-panel" id="newPasswordForm" hidden>
+          <label class="field">
+            <span>New Password</span>
+            <input id="newPassword" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required />
+          </label>
+          <button class="add-button" type="submit">Update Password</button>
+        </form>
+
+        <p class="auth-status" id="authStatus"></p>
       </div>
     </section>
 
@@ -1101,7 +1180,12 @@
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+      const SUPABASE_URL = "https://crhsdxtsdofqtjhqzxox.supabase.co";
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_PVE6wCduGbppe4W4OWBG0w_MdV7NRWR";
+      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
       const money = new Intl.NumberFormat("en-ZA", {
         style: "currency",
         currency: "ZAR",
@@ -1119,8 +1203,12 @@
 
       const categoryColors = ["#4f46e5", "#f97316", "#10b981", "#e11d48", "#06b6d4", "#facc15", "#7c3aed", "#111827", "#84cc16"];
 
-      const accountKey = "budget-app-account";
-      const accountForm = document.querySelector("#accountForm");
+      let currentUser = null;
+      const signupForm = document.querySelector("#signupForm");
+      const loginForm = document.querySelector("#loginForm");
+      const resetForm = document.querySelector("#resetForm");
+      const newPasswordForm = document.querySelector("#newPasswordForm");
+      const authStatus = document.querySelector("#authStatus");
       const authScreen = document.querySelector("#authScreen");
       const paymentScreen = document.querySelector("#paymentScreen");
       const paymentForm = document.querySelector("#paymentForm");
@@ -1151,27 +1239,94 @@
         accountToggle.setAttribute("aria-expanded", "false");
       });
 
-      accountForm.addEventListener("submit", (event) => {
+      document.querySelectorAll("[data-auth-mode]").forEach((button) => {
+        button.addEventListener("click", () => setAuthMode(button.dataset.authMode));
+      });
+
+      signupForm.addEventListener("submit", async (event) => {
         event.preventDefault();
-        const name = document.querySelector("#accountName").value.trim();
-        const email = document.querySelector("#accountEmail").value.trim();
-        const password = document.querySelector("#accountPassword").value;
+        setAuthStatus("Creating your account...");
+        const name = document.querySelector("#signupName").value.trim();
+        const email = document.querySelector("#signupEmail").value.trim();
+        const password = document.querySelector("#signupPassword").value;
 
         if (!name || !email || password.length < 6) return;
 
-        localStorage.setItem(
-          accountKey,
-          JSON.stringify({
-            name,
-            email,
-            plan: null,
-            paymentStatus: "pending",
-            createdAt: new Date().toISOString(),
-          })
-        );
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+          },
+        });
 
-        accountForm.reset();
-        showPaymentScreen();
+        if (error) {
+          setAuthStatus(error.message, "error");
+          return;
+        }
+
+        signupForm.reset();
+        if (data.session) {
+          currentUser = data.user;
+          await continueAfterAuth();
+        } else {
+          setAuthStatus("Account created. Check your email to confirm your signup, then log in.", "success");
+          setAuthMode("login");
+        }
+      });
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setAuthStatus("Logging you in...");
+        const email = document.querySelector("#loginEmail").value.trim();
+        const password = document.querySelector("#loginPassword").value;
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          setAuthStatus(error.message, "error");
+          return;
+        }
+
+        loginForm.reset();
+        currentUser = data.user;
+        await continueAfterAuth();
+      });
+
+      resetForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setAuthStatus("Sending password reset link...");
+        const email = document.querySelector("#resetEmail").value.trim();
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.href.split("#")[0],
+        });
+
+        if (error) {
+          setAuthStatus(error.message, "error");
+          return;
+        }
+
+        resetForm.reset();
+        setAuthStatus("Password reset link sent. Check your email.", "success");
+      });
+
+      newPasswordForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setAuthStatus("Updating password...");
+        const password = document.querySelector("#newPassword").value;
+        const { error } = await supabaseClient.auth.updateUser({ password });
+
+        if (error) {
+          setAuthStatus(error.message, "error");
+          return;
+        }
+
+        newPasswordForm.reset();
+        setAuthStatus("Password updated. You can continue to the app.", "success");
+        await continueAfterAuth();
       });
 
       paymentForm.addEventListener("change", updatePaymentFields);
@@ -1179,8 +1334,7 @@
       paymentForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const selectedPlan = document.querySelector("input[name='plan']:checked").value;
-        const account = getAccount();
-        if (!account) {
+        if (!currentUser) {
           showAuthScreen();
           return;
         }
@@ -1189,9 +1343,9 @@
 
         const planDetails = plans[selectedPlan];
         localStorage.setItem(
-          accountKey,
+          planStorageKey(),
           JSON.stringify({
-            ...account,
+            userId: currentUser.id,
             plan: selectedPlan,
             paymentStatus: selectedPlan === "free" ? "free" : "demo-paid",
             planLabel: planDetails.label,
@@ -1203,8 +1357,9 @@
         showBudgetApp();
       });
 
-      document.querySelector("#signOutButton").addEventListener("click", () => {
-        localStorage.removeItem(accountKey);
+      document.querySelector("#signOutButton").addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        currentUser = null;
         showAuthScreen();
       });
 
@@ -1280,6 +1435,21 @@
           button: "Pay R299 Yearly",
         },
       };
+
+      function planStorageKey() {
+        return currentUser ? `budget-app-plan:${currentUser.id}` : null;
+      }
+
+      function getSelectedPlan() {
+        const key = planStorageKey();
+        if (!key) return null;
+
+        try {
+          return JSON.parse(localStorage.getItem(key));
+        } catch {
+          return null;
+        }
+      }
 
       function totals() {
         const income = state.items
@@ -1454,15 +1624,52 @@
         });
       }
 
+      async function continueAfterAuth() {
+        if (!currentUser) {
+          showAuthScreen();
+          return;
+        }
+
+        if (getSelectedPlan()?.plan) {
+          showBudgetApp();
+        } else {
+          showPaymentScreen();
+        }
+      }
+
+      function setAuthMode(mode) {
+        const panels = {
+          signup: signupForm,
+          login: loginForm,
+          reset: resetForm,
+          newPassword: newPasswordForm,
+        };
+
+        Object.entries(panels).forEach(([panelMode, panel]) => {
+          panel.hidden = panelMode !== mode;
+        });
+
+        document.querySelectorAll("[data-auth-mode]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.authMode === mode);
+        });
+        setAuthStatus("");
+      }
+
+      function setAuthStatus(message, type = "") {
+        authStatus.textContent = message;
+        authStatus.className = `auth-status ${type}`.trim();
+      }
+
       function showBudgetApp() {
-        const account = getAccount();
+        const plan = getSelectedPlan();
         const month = new Intl.DateTimeFormat("en-ZA", {
           month: "long",
           year: "numeric",
         }).format(new Date());
 
-        const planName = account.planLabel || "Free";
-        document.querySelector("#accountLabel").textContent = `${account.name} · ${account.email} · ${planName} · ${month}`;
+        const displayName = currentUser?.user_metadata?.full_name || currentUser?.email || "Account";
+        const planName = plan?.planLabel || "Free";
+        document.querySelector("#accountLabel").textContent = `${displayName} · ${currentUser.email} · ${planName} · ${month}`;
         accountMenu.hidden = true;
         accountToggle.setAttribute("aria-expanded", "false");
         authScreen.hidden = true;
@@ -1482,7 +1689,8 @@
         budgetApp.hidden = true;
         paymentScreen.hidden = true;
         authScreen.hidden = false;
-        document.querySelector("#accountName").focus();
+        setAuthMode("login");
+        document.querySelector("#loginEmail").focus();
       }
 
       function updatePaymentFields() {
@@ -1505,22 +1713,31 @@
         return cardNumber.length >= 12 && cardExpiry.length >= 4 && cardCvc.length >= 3;
       }
 
-      function getAccount() {
-        try {
-          return JSON.parse(localStorage.getItem(accountKey));
-        } catch {
-          return null;
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        currentUser = session?.user || null;
+        if (event === "PASSWORD_RECOVERY") {
+          authScreen.hidden = false;
+          paymentScreen.hidden = true;
+          budgetApp.hidden = true;
+          setAuthMode("newPassword");
+          setAuthStatus("Enter your new password to finish resetting your account.", "success");
+          return;
+        }
+      });
+
+      async function initializeAuth() {
+        const { data } = await supabaseClient.auth.getSession();
+        currentUser = data.session?.user || null;
+
+        if (currentUser) {
+          await continueAfterAuth();
+        } else {
+          showAuthScreen();
+          setAuthMode("signup");
         }
       }
 
-      const savedAccount = getAccount();
-      if (savedAccount?.plan) {
-        showBudgetApp();
-      } else if (savedAccount) {
-        showPaymentScreen();
-      } else {
-        showAuthScreen();
-      }
+      initializeAuth();
     </script>
   </body>
 </html>
