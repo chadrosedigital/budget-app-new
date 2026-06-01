@@ -15,6 +15,12 @@ The Premium plan redirects to PayFast and charges `R50.00` once-off for lifetime
 
 `/api/payfast-itn`
 
+After deploying, open this URL to confirm Vercel deployed the API functions:
+
+`https://your-vercel-site.vercel.app/api/health`
+
+It should return JSON with `"ok": true`. If it returns a Vercel `NOT_FOUND` page, the `api` folder was not uploaded or deployed from the project root.
+
 Set these environment variables in Vercel:
 
 - `SUPABASE_URL`
