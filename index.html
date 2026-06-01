@@ -1329,12 +1329,15 @@
         }
 
         if (selectedPlan === "trial") {
-          currentAccess = await fetchAccessStatus();
+          currentAccess = await fetchAccessStatus({ startTrial: true });
           if (currentAccess.allowed) {
             showBudgetApp();
             return;
           }
-          paymentNote.textContent = "Your 3-day trial has expired. Please choose the R50 once-off payment for lifetime access.";
+          paymentNote.textContent =
+            currentAccess.reason === "choose_access"
+              ? "Choose the 3-day free trial or pay R50 now for lifetime access."
+              : "Your 3-day trial has expired. Please choose the R50 once-off payment for lifetime access.";
           document.querySelector("input[name='plan'][value='onceoff']").checked = true;
           updatePaymentFields();
           return;
@@ -1737,7 +1740,7 @@
         return currentUser;
       }
 
-      async function fetchAccessStatus() {
+      async function fetchAccessStatus({ startTrial = false } = {}) {
         const { data } = await supabaseClient.auth.getSession();
         const accessToken = data.session?.access_token;
         if (!accessToken) {
@@ -1745,6 +1748,7 @@
         }
 
         const response = await fetch("/api/access-status", {
+          method: startTrial ? "POST" : "GET",
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -1824,6 +1828,8 @@
         paymentNote.textContent =
           selectedPlan === "trial" && currentAccess?.reason === "trial_expired"
             ? "Your 3-day free trial has expired. Choose the R50 once-off payment for lifetime access."
+            : selectedPlan === "trial" && currentAccess?.reason === "choose_access"
+              ? "Trial selected. Click below to start your 3-day free trial, or choose Premium to pay now."
             : planDetails.note;
         planButton.textContent = planDetails.button;
       }

@@ -44,6 +44,16 @@ module.exports = async function handler(req, res) {
     }
 
     if (!metadata.trial_start || !metadata.trial_end) {
+      if (req.method !== "POST") {
+        res.status(200).json({
+          allowed: false,
+          reason: "choose_access",
+          planLabel: "Choose Access",
+          app_metadata: metadata,
+        });
+        return;
+      }
+
       const trialStart = now;
       const trialEnd = addTrialDays(now);
       const updatedUser = await updateSupabaseAppMetadata(user.id, {
