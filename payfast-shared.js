@@ -24,6 +24,10 @@ function createSignature(fields, passphrase) {
 }
 
 async function verifySupabaseUser(accessToken) {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error("Supabase environment variables are not configured on the server");
+  }
+
   const response = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
     headers: {
       apikey: process.env.SUPABASE_PUBLISHABLE_KEY,
@@ -36,6 +40,10 @@ async function verifySupabaseUser(accessToken) {
 }
 
 async function markSupabaseUserPaid(userId, payment) {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Supabase service role environment variables are not configured on the server");
+  }
+
   const response = await fetch(`${process.env.SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
     method: "PUT",
     headers: {

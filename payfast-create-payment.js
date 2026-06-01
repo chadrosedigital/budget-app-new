@@ -1,6 +1,15 @@
 const { PAYFAST_HOST, createSignature, verifySupabaseUser } = require("./payfast-shared");
 
+function requireEnv(names) {
+  const missing = names.filter((name) => !process.env[name]);
+  if (missing.length) {
+    throw new Error(`Missing server environment variables: ${missing.join(", ")}`);
+  }
+}
+
 module.exports = async function handler(req, res) {
+  res.setHeader("Content-Type", "application/json");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "Method not allowed" });
@@ -8,6 +17,14 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    requireEnv([
+      "SUPABASE_URL",
+      "SUPABASE_PUBLISHABLE_KEY",
+      "PAYFAST_MERCHANT_ID",
+      "PAYFAST_MERCHANT_KEY",
+      "PAYFAST_PASSPHRASE",
+    ]);
+
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) {
       res.status(401).json({ error: "Missing Supabase session token" });

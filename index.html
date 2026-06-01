@@ -1659,16 +1659,30 @@
               Authorization: `Bearer ${accessToken}`,
             },
           });
-          const payload = await response.json();
+          const payload = await parseJsonResponse(response);
 
           if (!response.ok) {
             throw new Error(payload.error || "Could not start PayFast payment");
+          }
+
+          if (!payload.action || !payload.fields) {
+            throw new Error("PayFast checkout response was incomplete.");
           }
 
           submitPayFastForm(payload.action, payload.fields);
         } catch (error) {
           paymentNote.textContent = error.message || "Payment could not be started. Please try again.";
           planButton.disabled = false;
+        }
+      }
+
+      async function parseJsonResponse(response) {
+        const text = await response.text();
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          const preview = text.replace(/\s+/g, " ").trim().slice(0, 140);
+          throw new Error(`Payment endpoint returned text instead of JSON: ${preview || response.statusText}`);
         }
       }
 
