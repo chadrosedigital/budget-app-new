@@ -3,9 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#6263e8" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Budget Overview" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>Budget Overview</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
     <style>
       :root {
         color-scheme: light;
@@ -268,6 +274,63 @@
         color: var(--muted);
         line-height: 1.5;
         overflow-wrap: anywhere;
+      }
+
+      .install-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 0 0 22px;
+        padding: 14px 16px;
+        border: 1px solid rgba(98, 99, 232, 0.24);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      .install-banner[hidden] {
+        display: none;
+      }
+
+      .install-copy {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .install-copy strong {
+        display: block;
+        color: var(--ink);
+        margin-bottom: 2px;
+      }
+
+      .install-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+      }
+
+      .install-button,
+      .install-dismiss {
+        min-height: 38px;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .install-button {
+        border: 0;
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .install-dismiss {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--muted);
       }
 
       .sign-out:hover {
@@ -771,6 +834,11 @@
           gap: 22px;
         }
 
+        .install-banner {
+          grid-column: 1 / -1;
+          margin-bottom: 0;
+        }
+
         .stat {
           min-height: 166px;
           border-radius: 18px;
@@ -942,6 +1010,15 @@
         .stats {
           grid-template-columns: 1fr;
         }
+
+        .install-banner {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .install-actions {
+          justify-content: flex-start;
+        }
       }
 
       @media (max-width: 560px) {
@@ -981,6 +1058,11 @@
         .stats {
           gap: 14px;
           margin-bottom: 18px;
+        }
+
+        .install-banner {
+          margin-bottom: 18px;
+          border-radius: 14px;
         }
 
         .stat {
@@ -1231,6 +1313,17 @@
         </div>
       </header>
 
+      <section class="install-banner" id="installBanner" aria-label="Install app" hidden>
+        <p class="install-copy" id="installCopy">
+          <strong>Install Budget Overview</strong>
+          Add this app to your home screen for quick access.
+        </p>
+        <div class="install-actions">
+          <button class="install-button" type="button" id="installButton">Install App</button>
+          <button class="install-dismiss" type="button" id="installDismiss">Dismiss</button>
+        </div>
+      </section>
+
       <section class="stats" aria-label="Budget summary">
         <article class="stat income-card">
           <span class="label">Income</span>
@@ -1367,6 +1460,7 @@
       let budgetDataLoadedForUserId = null;
       let budgetSaveTimer = null;
       let isLoadingBudgetData = false;
+      let deferredInstallPrompt = null;
       const signupForm = document.querySelector("#signupForm");
       const loginForm = document.querySelector("#loginForm");
       const resetForm = document.querySelector("#resetForm");
@@ -1378,6 +1472,10 @@
       const paymentNote = document.querySelector("#paymentNote");
       const planButton = document.querySelector("#planButton");
       const budgetApp = document.querySelector("#budgetApp");
+      const installBanner = document.querySelector("#installBanner");
+      const installCopy = document.querySelector("#installCopy");
+      const installButton = document.querySelector("#installButton");
+      const installDismiss = document.querySelector("#installDismiss");
       const accountToggle = document.querySelector("#accountToggle");
       const accountMenu = document.querySelector("#accountMenu");
       const incomeForm = document.querySelector("#incomeForm");
@@ -1400,6 +1498,27 @@
         accountMenu.hidden = true;
         accountToggle.setAttribute("aria-expanded", "false");
       });
+
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        showInstallBanner("android");
+      });
+
+      window.addEventListener("appinstalled", () => {
+        deferredInstallPrompt = null;
+        hideInstallBanner(true);
+      });
+
+      installButton.addEventListener("click", async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        hideInstallBanner(true);
+      });
+
+      installDismiss.addEventListener("click", () => hideInstallBanner(true));
 
       document.querySelectorAll("[data-auth-mode]").forEach((button) => {
         button.addEventListener("click", () => setAuthMode(button.dataset.authMode));
@@ -2144,6 +2263,53 @@
         planButton.textContent = planDetails.button;
       }
 
+      function showInstallBanner(platform) {
+        if (isAppInstalled() || localStorage.getItem("budgetInstallDismissed") === "true") return;
+
+        if (platform === "ios") {
+          installCopy.innerHTML =
+            "<strong>Install Budget Overview</strong>On iPhone, tap Share, then choose Add to Home Screen.";
+          installButton.hidden = true;
+        } else {
+          installCopy.innerHTML =
+            "<strong>Install Budget Overview</strong>Add this app to your home screen for quick access.";
+          installButton.hidden = false;
+        }
+
+        installBanner.hidden = false;
+      }
+
+      function hideInstallBanner(rememberChoice = false) {
+        installBanner.hidden = true;
+        if (rememberChoice) {
+          localStorage.setItem("budgetInstallDismissed", "true");
+        }
+      }
+
+      function isAppInstalled() {
+        return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      }
+
+      function isAppleMobile() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      }
+
+      function initializeInstallSupport() {
+        if (isAppleMobile()) {
+          showInstallBanner("ios");
+        }
+      }
+
+      function registerServiceWorker() {
+        if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch((error) => {
+            console.error("Service worker registration failed", error);
+          });
+        });
+      }
+
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         if (event === "PASSWORD_RECOVERY") {
@@ -2181,6 +2347,8 @@
         }
       }
 
+      initializeInstallSupport();
+      registerServiceWorker();
       initializeAuth();
     </script>
   </body>

@@ -53,11 +53,26 @@ Before using the app, open the Supabase SQL Editor and run the SQL in:
 
 This creates the `public.user_budgets` table and turns on Row Level Security. The policies only allow authenticated users to read, create, update, or delete rows where `user_id` matches their own Supabase account.
 
+## Progressive Web App
+
+The app includes PWA support:
+
+- `manifest.webmanifest` for install metadata
+- `sw.js` for the service worker
+- `assets/icons/` for mobile app icons
+- Android install button using the browser install prompt
+- iPhone instructions for Share > Add to Home Screen
+
+Service workers run on secure origins, so test this after deploying to Vercel.
+
 ## Deploying to Vercel
 
 Upload or push these files at the root of your GitHub repository:
 
 - `index.html`
+- `manifest.webmanifest`
+- `sw.js`
+- `assets/`
 - `api/`
 - `supabase-user-budgets.sql`
 - `package.json`
