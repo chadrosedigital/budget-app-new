@@ -89,7 +89,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    if (fields.payment_status !== "COMPLETE" || Number(fields.amount_gross) !== 10) {
+    if (fields.payment_status !== "COMPLETE" || Number(fields.amount_gross) !== 49) {
       if (userId) {
         await recordSupabasePayment(userId, {
           status: "ignored",

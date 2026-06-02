@@ -78,7 +78,7 @@ async function markSupabaseUserPaid(userId, payment) {
 async function markSupabaseUserPaidFromReturn(userId) {
   const payment = {
     payment_status: "RETURN_CONFIRMED",
-    amount_gross: "10.00",
+    amount_gross: "49.00",
     pf_payment_id: null,
     m_payment_id: null,
     source: "payfast_return",

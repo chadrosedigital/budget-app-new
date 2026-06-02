@@ -5,13 +5,13 @@ A simple visual budget app for tracking income, expenses, leftover balance, and 
 The app includes Supabase Authentication and a PayFast payment gate with two access options:
 
 - 3-day free trial
-- Premium: R10 once-off
+- Premium: R49 once-off
 
-New users receive full app access during a 3-day trial. The trial start and end dates are stored securely in Supabase `app_metadata`. After the trial expires, access is blocked unless PayFast has confirmed the R10 once-off Premium payment.
+New users receive full app access during a 3-day trial. The trial start and end dates are stored securely in Supabase `app_metadata`. After the trial expires, access is blocked unless PayFast has confirmed the R49 once-off Premium payment.
 
 ## PayFast Lifetime Payment
 
-The Premium plan redirects to PayFast and charges `R10.00` once-off for lifetime access. Payment confirmation is handled by the PayFast ITN endpoint:
+The Premium plan redirects to PayFast and charges `R49.00` once-off for lifetime access. Payment confirmation is handled by the PayFast ITN endpoint:
 
 `/api/payfast-itn`
 

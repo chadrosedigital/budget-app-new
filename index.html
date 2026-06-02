@@ -1297,7 +1297,7 @@
       <div class="payment-card">
         <h1>Choose Your Plan</h1>
         <p class="subtitle">
-          Start with a 3-day free trial or unlock lifetime access with one R10 payment.
+          Start with a 3-day free trial or unlock lifetime access with one R49 payment.
         </p>
         <form id="paymentForm">
           <div class="pricing-grid" role="radiogroup" aria-label="Plan">
@@ -1314,7 +1314,7 @@
             <label class="plan-card">
               <input type="radio" name="plan" value="onceoff" />
               <span class="plan-name">Premium</span>
-              <strong class="plan-price">R10 <span>once-off</span></strong>
+              <strong class="plan-price">R49 <span>once-off</span></strong>
               <ul>
                 <li>Everything in the trial</li>
                 <li>Advanced advice prompts</li>
@@ -1688,8 +1688,8 @@
           }
           paymentNote.textContent =
             currentAccess.reason === "choose_access"
-              ? "Choose the 3-day free trial or pay R10 now for lifetime access."
-              : "Your 3-day trial has expired. Please choose the R10 once-off payment for lifetime access.";
+              ? "Choose the 3-day free trial or pay R49 now for lifetime access."
+              : "Your 3-day trial has expired. Please choose the R49 once-off payment for lifetime access.";
           document.querySelector("input[name='plan'][value='onceoff']").checked = true;
           updatePaymentFields();
           return;
@@ -1772,9 +1772,9 @@
         },
         onceoff: {
           label: "Premium",
-          price: "R10 once-off",
-          note: "Premium selected. You will be redirected to PayFast for the secure once-off R10 payment.",
-          button: "Pay R10 with PayFast",
+          price: "R49 once-off",
+          note: "Premium selected. You will be redirected to PayFast for the secure once-off R49 payment.",
+          button: "Pay R49 with PayFast",
         },
       };
 
@@ -1785,7 +1785,7 @@
             plan: "onceoff",
             paymentStatus: "paid",
             planLabel: "Premium",
-            planPrice: "R10 once-off",
+            planPrice: "R49 once-off",
           };
         }
 
@@ -2360,7 +2360,7 @@
 
         paymentNote.textContent =
           selectedPlan === "trial" && currentAccess?.reason === "trial_expired"
-            ? "Your 3-day free trial has expired. Choose the R10 once-off payment for lifetime access."
+            ? "Your 3-day free trial has expired. Choose the R49 once-off payment for lifetime access."
             : selectedPlan === "trial" && currentAccess?.reason === "choose_access"
               ? "Trial selected. Click below to start your 3-day free trial, or choose Premium to pay now."
             : planDetails.note;
