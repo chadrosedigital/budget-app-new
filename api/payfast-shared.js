@@ -23,6 +23,19 @@ function createSignature(fields, passphrase) {
   return crypto.createHash("md5").update(signatureString(fields, passphrase)).digest("hex");
 }
 
+function stripSignatureFromParamString(paramString) {
+  return String(paramString || "")
+    .split("&")
+    .filter((pair) => pair && !pair.startsWith("signature="))
+    .join("&");
+}
+
+function createSignatureFromParamString(paramString, passphrase) {
+  const base = stripSignatureFromParamString(paramString);
+  const signedString = passphrase ? `${base}&passphrase=${encodePayFastValue(passphrase)}` : base;
+  return crypto.createHash("md5").update(signedString).digest("hex");
+}
+
 async function verifySupabaseUser(accessToken) {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
     throw new Error("Supabase environment variables are not configured on the server");
@@ -90,13 +103,13 @@ async function updateSupabaseAppMetadata(userId, metadata) {
   return response.json();
 }
 
-async function verifyPayFastItn(fields) {
+async function verifyPayFastItn(fields, paramString) {
   const response = await fetch(PAYFAST_VALIDATE_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: signatureString(fields),
+    body: paramString || signatureString(fields),
   });
 
   const text = await response.text();
@@ -106,8 +119,10 @@ async function verifyPayFastItn(fields) {
 module.exports = {
   PAYFAST_HOST,
   createSignature,
+  createSignatureFromParamString,
   markSupabaseUserPaid,
   signatureString,
+  stripSignatureFromParamString,
   updateSupabaseAppMetadata,
   verifyPayFastItn,
   verifySupabaseUser,

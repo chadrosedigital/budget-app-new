@@ -1,4 +1,10 @@
-const { createSignature, markSupabaseUserPaid, verifyPayFastItn } = require("../payfast-shared");
+const {
+  createSignature,
+  createSignatureFromParamString,
+  markSupabaseUserPaid,
+  stripSignatureFromParamString,
+  verifyPayFastItn,
+} = require("../payfast-shared");
 
 function collectBody(req) {
   return new Promise((resolve, reject) => {
@@ -30,14 +36,17 @@ module.exports = async function handler(req, res) {
   try {
     const rawBody = req.body && typeof req.body === "object" ? "" : typeof req.body === "string" ? req.body : await collectBody(req);
     const fields = parseItnBody(rawBody, req.body);
-    const expectedSignature = createSignature(fields, process.env.PAYFAST_PASSPHRASE);
+    const payfastParamString = stripSignatureFromParamString(rawBody);
+    const expectedSignature = payfastParamString
+      ? createSignatureFromParamString(payfastParamString, process.env.PAYFAST_PASSPHRASE)
+      : createSignature(fields, process.env.PAYFAST_PASSPHRASE);
 
     if (fields.signature !== expectedSignature) {
       res.status(400).send("Invalid signature");
       return;
     }
 
-    const validPayFastPost = await verifyPayFastItn(fields);
+    const validPayFastPost = await verifyPayFastItn(fields, payfastParamString);
     if (!validPayFastPost) {
       res.status(400).send("Invalid PayFast validation");
       return;
@@ -48,7 +57,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    if (fields.payment_status !== "COMPLETE" || Number(fields.amount_gross) !== 50) {
+    if (fields.payment_status !== "COMPLETE" || Number(fields.amount_gross) !== 10) {
       res.status(200).send("Ignored");
       return;
     }

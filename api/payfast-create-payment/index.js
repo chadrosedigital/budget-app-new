@@ -47,7 +47,7 @@ module.exports = async function handler(req, res) {
       notify_url: `${origin}/api/payfast-itn`,
       email_address: user.email,
       m_payment_id: paymentId,
-      amount: "50.00",
+      amount: "10.00",
       item_name: "Budget App Lifetime Access",
       item_description: "Once-off lifetime access to the premium budget app",
       custom_str1: user.id,

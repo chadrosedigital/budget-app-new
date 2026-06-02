@@ -235,6 +235,11 @@
         line-height: 1.5;
       }
 
+      #paymentForm.is-confirming .pricing-grid,
+      #paymentForm.is-confirming #planButton {
+        display: none;
+      }
+
       .user-chip {
         position: relative;
         display: inline-block;
@@ -1288,7 +1293,7 @@
       <div class="payment-card">
         <h1>Choose Your Plan</h1>
         <p class="subtitle">
-          Start with a 3-day free trial or unlock lifetime access with one R50 payment.
+          Start with a 3-day free trial or unlock lifetime access with one R10 payment.
         </p>
         <form id="paymentForm">
           <div class="pricing-grid" role="radiogroup" aria-label="Plan">
@@ -1305,7 +1310,7 @@
             <label class="plan-card">
               <input type="radio" name="plan" value="onceoff" />
               <span class="plan-name">Premium</span>
-              <strong class="plan-price">R50 <span>once-off</span></strong>
+              <strong class="plan-price">R10 <span>once-off</span></strong>
               <ul>
                 <li>Everything in the trial</li>
                 <li>Advanced advice prompts</li>
@@ -1679,8 +1684,8 @@
           }
           paymentNote.textContent =
             currentAccess.reason === "choose_access"
-              ? "Choose the 3-day free trial or pay R50 now for lifetime access."
-              : "Your 3-day trial has expired. Please choose the R50 once-off payment for lifetime access.";
+              ? "Choose the 3-day free trial or pay R10 now for lifetime access."
+              : "Your 3-day trial has expired. Please choose the R10 once-off payment for lifetime access.";
           document.querySelector("input[name='plan'][value='onceoff']").checked = true;
           updatePaymentFields();
           return;
@@ -1763,9 +1768,9 @@
         },
         onceoff: {
           label: "Premium",
-          price: "R50 once-off",
-          note: "Premium selected. You will be redirected to PayFast for the secure once-off R50 payment.",
-          button: "Pay R50 with PayFast",
+          price: "R10 once-off",
+          note: "Premium selected. You will be redirected to PayFast for the secure once-off R10 payment.",
+          button: "Pay R10 with PayFast",
         },
       };
 
@@ -1776,7 +1781,7 @@
             plan: "onceoff",
             paymentStatus: "paid",
             planLabel: "Premium",
-            planPrice: "R50 once-off",
+            planPrice: "R10 once-off",
           };
         }
 
@@ -2234,18 +2239,24 @@
       }
 
       async function waitForPayFastConfirmation() {
+        showPaymentProcessingScreen();
         paymentNote.textContent = "Payment received. Waiting for PayFast confirmation...";
-        for (let attempt = 0; attempt < 10; attempt += 1) {
-          await refreshCurrentUser();
-          currentAccess = await fetchAccessStatus();
-          if (currentAccess.allowed && currentAccess.reason === "paid") {
-            await showBudgetApp();
-            return;
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          try {
+            await refreshCurrentUser();
+            currentAccess = await fetchAccessStatus();
+            if (currentAccess.allowed && currentAccess.reason === "paid") {
+              paymentForm.classList.remove("is-confirming");
+              await showBudgetApp();
+              return;
+            }
+          } catch (error) {
+            paymentNote.textContent = "Payment received. Still checking PayFast confirmation...";
           }
           await new Promise((resolve) => setTimeout(resolve, 3000));
         }
-        paymentNote.textContent = "PayFast confirmation is still processing. Please refresh in a moment.";
         showPaymentScreen();
+        paymentNote.textContent = "PayFast confirmation is still processing. Please refresh in a moment, or log out and back in after PayFast finishes confirming the payment.";
       }
 
       async function showBudgetApp() {
@@ -2269,6 +2280,7 @@
       }
 
       function showPaymentScreen() {
+        paymentForm.classList.remove("is-confirming");
         loadingScreen.hidden = true;
         authScreen.hidden = true;
         budgetApp.hidden = true;
@@ -2278,6 +2290,15 @@
           document.querySelector("input[name='plan'][value='onceoff']").checked = true;
         }
         updatePaymentFields();
+      }
+
+      function showPaymentProcessingScreen() {
+        loadingScreen.hidden = true;
+        authScreen.hidden = true;
+        budgetApp.hidden = true;
+        paymentScreen.hidden = false;
+        paymentForm.classList.add("is-confirming");
+        planButton.disabled = true;
       }
 
       function showAuthScreen() {
@@ -2295,7 +2316,7 @@
 
         paymentNote.textContent =
           selectedPlan === "trial" && currentAccess?.reason === "trial_expired"
-            ? "Your 3-day free trial has expired. Choose the R50 once-off payment for lifetime access."
+            ? "Your 3-day free trial has expired. Choose the R10 once-off payment for lifetime access."
             : selectedPlan === "trial" && currentAccess?.reason === "choose_access"
               ? "Trial selected. Click below to start your 3-day free trial, or choose Premium to pay now."
             : planDetails.note;
