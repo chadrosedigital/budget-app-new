@@ -1,4 +1,4 @@
-const { PAYFAST_HOST, createSignature, verifySupabaseUser } = require("../payfast-shared");
+const { PAYFAST_HOST, createSignature, recordSupabasePayment, verifySupabaseUser } = require("../payfast-shared");
 
 function requireEnv(names) {
   const missing = names.filter((name) => !process.env[name]);
@@ -54,6 +54,17 @@ module.exports = async function handler(req, res) {
     };
 
     fields.signature = createSignature(fields, process.env.PAYFAST_PASSPHRASE);
+    await recordSupabasePayment(user.id, {
+      status: "pending",
+      payment_amount: fields.amount,
+      m_payment_id: paymentId,
+      raw: {
+        amount: fields.amount,
+        item_name: fields.item_name,
+        return_url: fields.return_url,
+        notify_url: fields.notify_url,
+      },
+    });
 
     res.status(200).json({
       action: `${PAYFAST_HOST}/eng/process`,

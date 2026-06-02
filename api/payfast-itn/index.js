@@ -2,6 +2,7 @@ const {
   createSignature,
   createSignatureFromParamString,
   markSupabaseUserPaid,
+  recordSupabasePayment,
   stripSignatureFromParamString,
   verifyPayFastItn,
 } = require("../payfast-shared");
@@ -40,29 +41,69 @@ module.exports = async function handler(req, res) {
     const expectedSignature = payfastParamString
       ? createSignatureFromParamString(payfastParamString, process.env.PAYFAST_PASSPHRASE)
       : createSignature(fields, process.env.PAYFAST_PASSPHRASE);
+    const userId = fields.custom_str1;
 
     if (fields.signature !== expectedSignature) {
+      if (userId) {
+        await recordSupabasePayment(userId, {
+          status: "invalid_signature",
+          payment_status: fields.payment_status,
+          payment_amount: fields.amount_gross,
+          payfast_payment_id: fields.pf_payment_id,
+          m_payment_id: fields.m_payment_id,
+          raw: fields,
+        });
+      }
       res.status(400).send("Invalid signature");
       return;
     }
 
     const validPayFastPost = await verifyPayFastItn(fields, payfastParamString);
     if (!validPayFastPost) {
+      if (userId) {
+        await recordSupabasePayment(userId, {
+          status: "invalid_payfast_validation",
+          payment_status: fields.payment_status,
+          payment_amount: fields.amount_gross,
+          payfast_payment_id: fields.pf_payment_id,
+          m_payment_id: fields.m_payment_id,
+          raw: fields,
+        });
+      }
       res.status(400).send("Invalid PayFast validation");
       return;
     }
 
     if (fields.merchant_id !== process.env.PAYFAST_MERCHANT_ID) {
+      if (userId) {
+        await recordSupabasePayment(userId, {
+          status: "invalid_merchant",
+          payment_status: fields.payment_status,
+          payment_amount: fields.amount_gross,
+          payfast_payment_id: fields.pf_payment_id,
+          m_payment_id: fields.m_payment_id,
+          raw: fields,
+        });
+      }
       res.status(400).send("Invalid merchant");
       return;
     }
 
     if (fields.payment_status !== "COMPLETE" || Number(fields.amount_gross) !== 10) {
+      if (userId) {
+        await recordSupabasePayment(userId, {
+          status: "ignored",
+          payment_status: fields.payment_status,
+          payment_amount: fields.amount_gross,
+          payfast_payment_id: fields.pf_payment_id,
+          m_payment_id: fields.m_payment_id,
+          raw: fields,
+        });
+      }
       res.status(200).send("Ignored");
       return;
     }
 
-    const userId = fields.custom_str1;
     if (!userId) {
       res.status(400).send("Missing user id");
       return;

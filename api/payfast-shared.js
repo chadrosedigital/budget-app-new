@@ -53,7 +53,7 @@ async function verifySupabaseUser(accessToken) {
 }
 
 async function markSupabaseUserPaid(userId, payment) {
-  return updateSupabaseAppMetadata(userId, {
+  const updatedUser = await updateSupabaseAppMetadata(userId, {
     payfast_paid: true,
     plan: "premium",
     lifetime_access: true,
@@ -62,6 +62,58 @@ async function markSupabaseUserPaid(userId, payment) {
     payfast_payment_id: payment.pf_payment_id,
     paid_at: new Date().toISOString(),
   });
+
+  await recordSupabasePayment(userId, {
+    status: "paid",
+    payment_status: payment.payment_status,
+    payment_amount: payment.amount_gross,
+    payfast_payment_id: payment.pf_payment_id,
+    m_payment_id: payment.m_payment_id,
+    raw: payment,
+  });
+
+  return updatedUser;
+}
+
+async function recordSupabasePayment(userId, payment) {
+  try {
+    return await upsertSupabasePaymentRecord(userId, payment);
+  } catch (error) {
+    console.error(error.message || "Could not record Supabase payment");
+    return null;
+  }
+}
+
+async function upsertSupabasePaymentRecord(userId, payment) {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Supabase service role environment variables are not configured on the server");
+  }
+
+  const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/user_payments`, {
+    method: "POST",
+    headers: {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=representation",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      status: payment.status || "pending",
+      payment_status: payment.payment_status || null,
+      payment_amount: payment.payment_amount || null,
+      payfast_payment_id: payment.payfast_payment_id || null,
+      m_payment_id: payment.m_payment_id || null,
+      raw: payment.raw || null,
+      updated_at: new Date().toISOString(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase payment record update failed: ${await response.text()}`);
+  }
+
+  return response.json();
 }
 
 async function updateSupabaseAppMetadata(userId, metadata) {
@@ -121,9 +173,11 @@ module.exports = {
   createSignature,
   createSignatureFromParamString,
   markSupabaseUserPaid,
+  recordSupabasePayment,
   signatureString,
   stripSignatureFromParamString,
   updateSupabaseAppMetadata,
+  upsertSupabasePaymentRecord,
   verifyPayFastItn,
   verifySupabaseUser,
 };

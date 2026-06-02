@@ -53,6 +53,8 @@ Before using the app, open the Supabase SQL Editor and run the SQL in:
 
 This creates the `public.user_budgets` table and turns on Row Level Security. The policies only allow authenticated users to read, create, update, or delete rows where `user_id` matches their own Supabase account.
 
+The same SQL also creates `public.user_payments`, which helps you see PayFast payment attempts in Supabase. A successful payment should change the row status to `paid`. Failed ITN checks can show statuses such as `pending`, `invalid_signature`, `invalid_payfast_validation`, `invalid_merchant`, or `ignored`.
+
 ## Progressive Web App
 
 The app includes PWA support:

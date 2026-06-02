@@ -36,3 +36,26 @@ on public.user_budgets
 for delete
 to authenticated
 using (auth.uid() = user_id);
+
+create table if not exists public.user_payments (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  status text not null default 'pending',
+  payment_status text,
+  payment_amount text,
+  payfast_payment_id text,
+  m_payment_id text,
+  raw jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.user_payments enable row level security;
+
+grant select on public.user_payments to authenticated;
+
+drop policy if exists "Users can read their own payment status" on public.user_payments;
+create policy "Users can read their own payment status"
+on public.user_payments
+for select
+to authenticated
+using (auth.uid() = user_id);
