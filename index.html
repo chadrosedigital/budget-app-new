@@ -432,7 +432,11 @@
       }
 
       .stat.is-updating {
-        animation: softPulse 520ms ease;
+        animation: softPulse 760ms ease;
+      }
+
+      .amount.is-counting {
+        animation: numberPop 520ms ease;
       }
 
       .label {
@@ -528,8 +532,8 @@
       }
 
       .category-donut.is-updating {
-        transform: scale(1.025);
-        filter: saturate(1.08);
+        transform: scale(1.08) rotate(3deg);
+        filter: saturate(1.18) drop-shadow(0 16px 24px rgba(79, 70, 229, 0.22));
       }
 
       .category-donut::before {
@@ -610,7 +614,7 @@
         border-radius: 10px 10px 0 0;
         background: var(--chart);
         transform-origin: bottom;
-        animation: growBar 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation: growBar 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
       }
 
       .bar-label {
@@ -675,6 +679,10 @@
         border-radius: 28px;
         background: #fff;
         box-shadow: var(--shadow);
+      }
+
+      .entry-group.is-updating {
+        animation: sectionGlow 820ms ease;
       }
 
       .entry-group h3 {
@@ -770,7 +778,7 @@
         padding: 16px;
         border-radius: 16px;
         box-shadow: none;
-        animation: fadeSlideUp 280ms ease both;
+        animation: fadeSlideUp 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
         transition:
           transform 180ms ease,
           border-color 180ms ease,
@@ -853,8 +861,32 @@
           box-shadow: 0 18px 30px rgba(15, 23, 42, 0.16);
         }
         45% {
-          transform: scale(1.015);
-          box-shadow: 0 22px 36px rgba(15, 23, 42, 0.2);
+          transform: scale(1.035);
+          box-shadow: 0 26px 44px rgba(15, 23, 42, 0.24);
+        }
+      }
+
+      @keyframes numberPop {
+        0%,
+        100% {
+          transform: scale(1);
+          filter: brightness(1);
+        }
+        45% {
+          transform: scale(1.06);
+          filter: brightness(1.12);
+        }
+      }
+
+      @keyframes sectionGlow {
+        0%,
+        100% {
+          border-color: var(--line);
+          box-shadow: var(--shadow);
+        }
+        45% {
+          border-color: rgba(98, 99, 232, 0.52);
+          box-shadow: 0 18px 40px rgba(98, 99, 232, 0.2);
         }
       }
 
@@ -1573,6 +1605,11 @@
       let deferredInstallPrompt = null;
       let previousDonutSlices = [];
       let donutAnimationFrame = null;
+      const displayedTotals = {
+        income: null,
+        expenses: null,
+        balance: null,
+      };
       const signupForm = document.querySelector("#signupForm");
       const loginForm = document.querySelector("#loginForm");
       const resetForm = document.querySelector("#resetForm");
@@ -1800,7 +1837,7 @@
 
         incomeForm.reset();
         render();
-        pulseBudgetUi();
+        pulseBudgetUi("income");
         saveBudgetData({ immediate: true });
       });
 
@@ -1822,7 +1859,7 @@
 
         expenseForm.reset();
         render();
-        pulseBudgetUi();
+        pulseBudgetUi("expense");
         saveBudgetData({ immediate: true });
       });
 
@@ -1831,7 +1868,7 @@
         if (!button) return;
         state.items = state.items.filter((item) => item.id !== Number(button.dataset.id));
         render();
-        pulseBudgetUi();
+        pulseBudgetUi("all");
         saveBudgetData({ immediate: true });
       });
 
@@ -1896,9 +1933,9 @@
         const expenseRatio = income > 0 ? expenses / income : 0;
         const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
 
-        document.querySelector("#incomeTotal").textContent = money.format(income);
-        document.querySelector("#expenseTotal").textContent = money.format(expenses);
-        document.querySelector("#balanceTotal").textContent = money.format(balance);
+        animateMoneyValue("income", document.querySelector("#incomeTotal"), income);
+        animateMoneyValue("expenses", document.querySelector("#expenseTotal"), expenses);
+        animateMoneyValue("balance", document.querySelector("#balanceTotal"), balance);
         document.querySelector("#savingsRate").textContent = `${Math.max(savingsRate, 0)}% savings rate`;
 
         renderCategoryVisuals();
@@ -2051,11 +2088,58 @@
         return start + (end - start) * amount;
       }
 
-      function pulseBudgetUi() {
+      function animateMoneyValue(key, element, nextValue) {
+        const previousValue = displayedTotals[key];
+        displayedTotals[key] = nextValue;
+
+        if (previousValue === null || previousValue === nextValue || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          element.textContent = money.format(nextValue);
+          return;
+        }
+
+        const startTime = performance.now();
+        const duration = 650;
+
+        element.classList.remove("is-counting");
+        void element.offsetWidth;
+        element.classList.add("is-counting");
+
+        const tick = (now) => {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const eased = easeOutCubic(progress);
+          const currentValue = Math.round(lerp(previousValue, nextValue, eased));
+          element.textContent = money.format(currentValue);
+
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+            return;
+          }
+
+          element.textContent = money.format(nextValue);
+          element.classList.remove("is-counting");
+        };
+
+        requestAnimationFrame(tick);
+      }
+
+      function pulseBudgetUi(type = "all") {
         document.querySelectorAll(".stat").forEach((card) => {
           card.classList.remove("is-updating");
           void card.offsetWidth;
           card.classList.add("is-updating");
+        });
+
+        const targets =
+          type === "income"
+            ? [incomeForm]
+            : type === "expense"
+              ? [expenseForm, categoryDonut]
+              : [incomeForm, expenseForm, categoryDonut];
+
+        targets.forEach((element) => {
+          element.classList.remove("is-updating");
+          void element.offsetWidth;
+          element.classList.add("is-updating");
         });
       }
 
