@@ -140,6 +140,21 @@
         color: var(--income-deep);
       }
 
+      .auth-helper {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.45;
+      }
+
+      .loading-card {
+        text-align: center;
+      }
+
+      .loading-card .subtitle {
+        max-width: none;
+      }
+
       .payment-card {
         width: min(100%, 960px);
         padding: 24px;
@@ -1200,7 +1215,14 @@
     </style>
   </head>
   <body>
-    <section class="auth-screen" id="authScreen">
+    <section class="auth-screen" id="loadingScreen" aria-live="polite">
+      <div class="auth-card loading-card">
+        <h1 class="brand-title">Simply Budget</h1>
+        <p class="subtitle">Opening your budget...</p>
+      </div>
+    </section>
+
+    <section class="auth-screen" id="authScreen" hidden>
       <div class="auth-card">
         <h1>Account</h1>
         <p class="subtitle">
@@ -1227,6 +1249,7 @@
             <input id="signupPassword" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required />
           </label>
           <button class="add-button" type="submit">Create Account</button>
+          <p class="auth-helper">After creating your account, please check your email and verify your account.</p>
         </form>
 
         <form class="auth-form auth-panel" id="loginForm" hidden>
@@ -1471,6 +1494,7 @@
       const resetForm = document.querySelector("#resetForm");
       const newPasswordForm = document.querySelector("#newPasswordForm");
       const authStatus = document.querySelector("#authStatus");
+      const loadingScreen = document.querySelector("#loadingScreen");
       const authScreen = document.querySelector("#authScreen");
       const paymentScreen = document.querySelector("#paymentScreen");
       const paymentForm = document.querySelector("#paymentForm");
@@ -1617,17 +1641,24 @@
       newPasswordForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         setAuthStatus("Updating password...");
+        setFormBusy(newPasswordForm, true);
         const password = document.querySelector("#newPassword").value;
-        const { error } = await supabaseClient.auth.updateUser({ password });
 
-        if (error) {
-          setAuthStatus(error.message, "error");
-          return;
+        try {
+          const { error } = await supabaseClient.auth.updateUser({ password });
+
+          if (error) {
+            setAuthStatus(error.message, "error");
+            return;
+          }
+
+          newPasswordForm.reset();
+          clearAuthUrlParams();
+          setAuthStatus("Password updated. You can continue to the app.", "success");
+          await continueAfterAuth();
+        } finally {
+          setFormBusy(newPasswordForm, false);
         }
-
-        newPasswordForm.reset();
-        setAuthStatus("Password updated. You can continue to the app.", "success");
-        await continueAfterAuth();
       });
 
       paymentForm.addEventListener("change", updatePaymentFields);
@@ -2230,6 +2261,7 @@
         document.querySelector("#accountLabel").textContent = `${displayName} · ${currentUser.email} · ${planName} · ${month}`;
         accountMenu.hidden = true;
         accountToggle.setAttribute("aria-expanded", "false");
+        loadingScreen.hidden = true;
         authScreen.hidden = true;
         paymentScreen.hidden = true;
         budgetApp.hidden = false;
@@ -2237,6 +2269,7 @@
       }
 
       function showPaymentScreen() {
+        loadingScreen.hidden = true;
         authScreen.hidden = true;
         budgetApp.hidden = true;
         paymentScreen.hidden = false;
@@ -2248,6 +2281,7 @@
       }
 
       function showAuthScreen() {
+        loadingScreen.hidden = true;
         budgetApp.hidden = true;
         paymentScreen.hidden = true;
         authScreen.hidden = false;
@@ -2266,6 +2300,26 @@
               ? "Trial selected. Click below to start your 3-day free trial, or choose Premium to pay now."
             : planDetails.note;
         planButton.textContent = planDetails.button;
+      }
+
+      function showPasswordResetScreen() {
+        loadingScreen.hidden = true;
+        authScreen.hidden = false;
+        paymentScreen.hidden = true;
+        budgetApp.hidden = true;
+        setAuthMode("newPassword");
+        setAuthStatus("Enter your new password to finish resetting your account.", "success");
+        document.querySelector("#newPassword").focus();
+      }
+
+      function hasPasswordRecoveryParams() {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        return searchParams.get("type") === "recovery" || hashParams.get("type") === "recovery";
+      }
+
+      function clearAuthUrlParams() {
+        window.history.replaceState({}, "", window.location.pathname);
       }
 
       function showInstallBanner(platform) {
@@ -2318,37 +2372,44 @@
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         if (event === "PASSWORD_RECOVERY") {
-          authScreen.hidden = false;
-          paymentScreen.hidden = true;
-          budgetApp.hidden = true;
-          setAuthMode("newPassword");
-          setAuthStatus("Enter your new password to finish resetting your account.", "success");
+          showPasswordResetScreen();
           return;
         }
       });
 
       async function initializeAuth() {
-        const { data } = await supabaseClient.auth.getSession();
-        currentUser = data.session?.user || null;
+        try {
+          const passwordRecoveryRequested = hasPasswordRecoveryParams();
+          const { data } = await supabaseClient.auth.getSession();
+          currentUser = data.session?.user || null;
 
-        if (currentUser) {
-          const params = new URLSearchParams(window.location.search);
-          if (params.get("payment") === "return") {
-            window.history.replaceState({}, "", window.location.pathname);
-            showPaymentScreen();
-            await waitForPayFastConfirmation();
+          if (passwordRecoveryRequested) {
+            showPasswordResetScreen();
             return;
           }
-          if (params.get("payment") === "cancelled") {
-            window.history.replaceState({}, "", window.location.pathname);
-            showPaymentScreen();
-            paymentNote.textContent = "Payment was cancelled. You can start a trial if available or try PayFast again.";
-            return;
+
+          if (currentUser) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("payment") === "return") {
+              window.history.replaceState({}, "", window.location.pathname);
+              showPaymentScreen();
+              await waitForPayFastConfirmation();
+              return;
+            }
+            if (params.get("payment") === "cancelled") {
+              window.history.replaceState({}, "", window.location.pathname);
+              showPaymentScreen();
+              paymentNote.textContent = "Payment was cancelled. You can start a trial if available or try PayFast again.";
+              return;
+            }
+            await continueAfterAuth();
+          } else {
+            showAuthScreen();
+            setAuthMode("signup");
           }
-          await continueAfterAuth();
-        } else {
+        } catch (error) {
           showAuthScreen();
-          setAuthMode("signup");
+          setAuthStatus(error.message || "Could not open your account. Please log in again.", "error");
         }
       }
 
