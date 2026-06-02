@@ -1,4 +1,4 @@
-# Budget Overview
+# Simply Budget
 
 A simple visual budget app for tracking income, expenses, leftover balance, and basic AI-style money advice.
 

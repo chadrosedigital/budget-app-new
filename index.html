@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#6263e8" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Budget Overview" />
+    <meta name="apple-mobile-web-app-title" content="Simply Budget" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>Budget Overview</title>
+    <title>Simply Budget</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
@@ -350,6 +350,12 @@
         font-size: clamp(2rem, 5vw, 4.25rem);
         line-height: 0.95;
         letter-spacing: 0;
+      }
+
+      .brand-title {
+        color: var(--income-deep);
+        font-size: clamp(2.25rem, 5vw, 4.5rem);
+        overflow-wrap: anywhere;
       }
 
       .subtitle {
@@ -1297,7 +1303,7 @@
     <main class="app" id="budgetApp" hidden>
       <header class="topbar">
         <div>
-          <h1>Budget Overview</h1>
+          <h1 class="brand-title">Simply Budget</h1>
           <p class="subtitle">
             Track income and expenses, see where your money is going, and get
             clear guidance from the overview at the bottom.
@@ -1314,7 +1320,7 @@
 
       <section class="install-banner" id="installBanner" aria-label="Install app" hidden>
         <p class="install-copy" id="installCopy">
-          <strong>Install Budget Overview</strong>
+          <strong>Install Simply Budget</strong>
           Add this app to your home screen for quick access.
         </p>
         <div class="install-actions">
@@ -2267,11 +2273,11 @@
 
         if (platform === "ios") {
           installCopy.innerHTML =
-            "<strong>Install Budget Overview</strong>On iPhone, tap Share, then choose Add to Home Screen.";
+            "<strong>Install Simply Budget</strong>On iPhone, tap Share, then choose Add to Home Screen.";
           installButton.hidden = true;
         } else {
           installCopy.innerHTML =
-            "<strong>Install Budget Overview</strong>Add this app to your home screen for quick access.";
+            "<strong>Install Simply Budget</strong>Add this app to your home screen for quick access.";
           installButton.hidden = false;
         }
 

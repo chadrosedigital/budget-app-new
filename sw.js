@@ -1,4 +1,4 @@
-const CACHE_NAME = "budget-overview-pwa-v1";
+const CACHE_NAME = "simply-budget-pwa-v1";
 const APP_SHELL = [
   "/",
   "/index.html",

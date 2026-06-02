@@ -1,6 +1,6 @@
 {
-  "name": "Budget Overview",
-  "short_name": "Budget",
+  "name": "Simply Budget",
+  "short_name": "Simply Budget",
   "description": "Track income, expenses, savings, and budget insights.",
   "start_url": "/",
   "scope": "/",
