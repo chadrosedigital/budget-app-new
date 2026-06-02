@@ -75,6 +75,37 @@ async function markSupabaseUserPaid(userId, payment) {
   return updatedUser;
 }
 
+async function markSupabaseUserPaidFromReturn(userId) {
+  const payment = {
+    payment_status: "RETURN_CONFIRMED",
+    amount_gross: "10.00",
+    pf_payment_id: null,
+    m_payment_id: null,
+    source: "payfast_return",
+  };
+
+  const updatedUser = await updateSupabaseAppMetadata(userId, {
+    payfast_paid: true,
+    plan: "premium",
+    lifetime_access: true,
+    payment_status: payment.payment_status,
+    payment_amount: payment.amount_gross,
+    payfast_payment_id: payment.pf_payment_id,
+    paid_at: new Date().toISOString(),
+  });
+
+  await recordSupabasePayment(userId, {
+    status: "paid",
+    payment_status: payment.payment_status,
+    payment_amount: payment.amount_gross,
+    payfast_payment_id: payment.pf_payment_id,
+    m_payment_id: payment.m_payment_id,
+    raw: payment,
+  });
+
+  return updatedUser;
+}
+
 async function recordSupabasePayment(userId, payment) {
   try {
     return await upsertSupabasePaymentRecord(userId, payment);
@@ -173,6 +204,7 @@ module.exports = {
   createSignature,
   createSignatureFromParamString,
   markSupabaseUserPaid,
+  markSupabaseUserPaidFromReturn,
   recordSupabasePayment,
   signatureString,
   stripSignatureFromParamString,

@@ -240,6 +240,10 @@
         display: none;
       }
 
+      .payment-card:has(#paymentForm.is-confirming) > .subtitle {
+        display: none;
+      }
+
       .user-chip {
         position: relative;
         display: inline-block;
@@ -2238,9 +2242,49 @@
         return payload;
       }
 
+      async function confirmPayFastReturn() {
+        const { data } = await supabaseClient.auth.getSession();
+        const accessToken = data.session?.access_token;
+        if (!accessToken) {
+          return { allowed: false, reason: "no_session" };
+        }
+
+        const response = await fetch("/api/payfast-return-confirm", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const payload = await parseJsonResponse(response);
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Could not confirm PayFast return");
+        }
+
+        if (payload.app_metadata) {
+          currentUser = {
+            ...currentUser,
+            app_metadata: payload.app_metadata,
+          };
+        }
+
+        return payload;
+      }
+
       async function waitForPayFastConfirmation() {
         showPaymentProcessingScreen();
         paymentNote.textContent = "Payment received. Waiting for PayFast confirmation...";
+        try {
+          currentAccess = await confirmPayFastReturn();
+          if (currentAccess.allowed && currentAccess.reason === "paid") {
+            paymentForm.classList.remove("is-confirming");
+            await showBudgetApp();
+            return;
+          }
+        } catch (error) {
+          paymentNote.textContent = "Payment received. Waiting for PayFast confirmation...";
+        }
+
         for (let attempt = 0; attempt < 40; attempt += 1) {
           try {
             await refreshCurrentUser();
