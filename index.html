@@ -426,6 +426,13 @@
         padding: clamp(26px, 5vw, 42px);
         color: #fff;
         box-shadow: 0 18px 30px rgba(15, 23, 42, 0.16);
+        transition:
+          transform 240ms ease,
+          box-shadow 240ms ease;
+      }
+
+      .stat.is-updating {
+        animation: softPulse 520ms ease;
       }
 
       .label {
@@ -514,6 +521,15 @@
         background: conic-gradient(var(--chart) 0deg 230deg, var(--chart-alt) 230deg 350deg, var(--expense) 350deg 360deg);
         display: grid;
         place-items: center;
+        transition:
+          transform 320ms ease,
+          filter 320ms ease;
+        will-change: background, transform;
+      }
+
+      .category-donut.is-updating {
+        transform: scale(1.025);
+        filter: saturate(1.08);
       }
 
       .category-donut::before {
@@ -537,6 +553,7 @@
         gap: 8px;
         color: var(--muted);
         font-weight: 700;
+        animation: fadeSlideUp 340ms ease both;
       }
 
       .legend i {
@@ -592,6 +609,8 @@
         min-height: 14px;
         border-radius: 10px 10px 0 0;
         background: var(--chart);
+        transform-origin: bottom;
+        animation: growBar 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
       }
 
       .bar-label {
@@ -751,6 +770,17 @@
         padding: 16px;
         border-radius: 16px;
         box-shadow: none;
+        animation: fadeSlideUp 280ms ease both;
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background 180ms ease;
+      }
+
+      .transaction:hover {
+        transform: translateY(-1px);
+        border-color: rgba(98, 99, 232, 0.28);
+        background: #fff;
       }
 
       .transaction strong {
@@ -794,6 +824,49 @@
         stroke-width: 2;
         stroke-linecap: round;
         stroke-linejoin: round;
+      }
+
+      @keyframes fadeSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes growBar {
+        from {
+          transform: scaleY(0);
+        }
+        to {
+          transform: scaleY(1);
+        }
+      }
+
+      @keyframes softPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 18px 30px rgba(15, 23, 42, 0.16);
+        }
+        45% {
+          transform: scale(1.015);
+          box-shadow: 0 22px 36px rgba(15, 23, 42, 0.2);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+        }
       }
 
       .ai {
@@ -1498,6 +1571,8 @@
       let budgetSaveTimer = null;
       let isLoadingBudgetData = false;
       let deferredInstallPrompt = null;
+      let previousDonutSlices = [];
+      let donutAnimationFrame = null;
       const signupForm = document.querySelector("#signupForm");
       const loginForm = document.querySelector("#loginForm");
       const resetForm = document.querySelector("#resetForm");
@@ -1725,6 +1800,7 @@
 
         incomeForm.reset();
         render();
+        pulseBudgetUi();
         saveBudgetData({ immediate: true });
       });
 
@@ -1746,6 +1822,7 @@
 
         expenseForm.reset();
         render();
+        pulseBudgetUi();
         saveBudgetData({ immediate: true });
       });
 
@@ -1754,6 +1831,7 @@
         if (!button) return;
         state.items = state.items.filter((item) => item.id !== Number(button.dataset.id));
         render();
+        pulseBudgetUi();
         saveBudgetData({ immediate: true });
       });
 
@@ -1849,22 +1927,15 @@
         const total = data.reduce((sum, item) => sum + item.amount, 0);
 
         if (!data.length || total <= 0) {
+          previousDonutSlices = [];
+          if (donutAnimationFrame) cancelAnimationFrame(donutAnimationFrame);
           categoryDonut.style.background = "#e5e7eb";
           categoryLegend.innerHTML = "<span>No expenses yet</span>";
           categoryBars.innerHTML = "<p class=\"subtitle\">Add expenses to build the category graph.</p>";
           return;
         }
 
-        let cursor = 0;
-        const gradient = data
-          .map((item) => {
-            const start = cursor;
-            cursor += (item.amount / total) * 360;
-            return `${item.color} ${start}deg ${cursor}deg`;
-          })
-          .join(", ");
-
-        categoryDonut.style.background = `conic-gradient(${gradient})`;
+        animateCategoryDonut(createDonutSlices(data, total));
         categoryLegend.innerHTML = data
           .map((item) => `<span><i style="--dot: ${item.color}"></i>${escapeHtml(item.name)} ${money.format(item.amount)}</span>`)
           .join("");
@@ -1895,6 +1966,97 @@
               .join("")}
           </div>
         `;
+      }
+
+      function createDonutSlices(data, total) {
+        let cursor = 0;
+        return data.map((item) => {
+          const start = cursor;
+          cursor += (item.amount / total) * 360;
+          return {
+            name: item.name,
+            color: item.color,
+            start,
+            end: cursor,
+          };
+        });
+      }
+
+      function animateCategoryDonut(nextSlices) {
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!previousDonutSlices.length || prefersReducedMotion) {
+          previousDonutSlices = nextSlices;
+          categoryDonut.style.background = donutGradient(nextSlices);
+          return;
+        }
+
+        if (donutAnimationFrame) cancelAnimationFrame(donutAnimationFrame);
+
+        const fromByName = new Map(previousDonutSlices.map((slice) => [slice.name, slice]));
+        const toByName = new Map(nextSlices.map((slice) => [slice.name, slice]));
+        const names = [...new Set([...previousDonutSlices.map((slice) => slice.name), ...nextSlices.map((slice) => slice.name)])];
+        const animationSlices = names.map((name) => {
+          const next = toByName.get(name);
+          const previous = fromByName.get(name);
+          return {
+            name,
+            color: next?.color || previous?.color || categoryColors[0],
+            from: previous || { start: next.start, end: next.start },
+            to: next || { start: previous.end, end: previous.end },
+          };
+        });
+        const startTime = performance.now();
+        const duration = 650;
+
+        categoryDonut.classList.add("is-updating");
+
+        const tick = (now) => {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const eased = easeOutCubic(progress);
+          const currentSlices = animationSlices.map((slice) => ({
+            name: slice.name,
+            color: slice.color,
+            start: lerp(slice.from.start, slice.to.start, eased),
+            end: lerp(slice.from.end, slice.to.end, eased),
+          }));
+
+          categoryDonut.style.background = donutGradient(currentSlices);
+
+          if (progress < 1) {
+            donutAnimationFrame = requestAnimationFrame(tick);
+            return;
+          }
+
+          previousDonutSlices = nextSlices;
+          categoryDonut.style.background = donutGradient(nextSlices);
+          categoryDonut.classList.remove("is-updating");
+          donutAnimationFrame = null;
+        };
+
+        donutAnimationFrame = requestAnimationFrame(tick);
+      }
+
+      function donutGradient(slices) {
+        return `conic-gradient(${slices
+          .filter((slice) => slice.end > slice.start)
+          .map((slice) => `${slice.color} ${slice.start}deg ${slice.end}deg`)
+          .join(", ")})`;
+      }
+
+      function easeOutCubic(value) {
+        return 1 - Math.pow(1 - value, 3);
+      }
+
+      function lerp(start, end, amount) {
+        return start + (end - start) * amount;
+      }
+
+      function pulseBudgetUi() {
+        document.querySelectorAll(".stat").forEach((card) => {
+          card.classList.remove("is-updating");
+          void card.offsetWidth;
+          card.classList.add("is-updating");
+        });
       }
 
       function renderMoneyLists() {
