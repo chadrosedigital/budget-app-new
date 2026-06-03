@@ -362,6 +362,7 @@
       }
 
       .topbar {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -391,6 +392,23 @@
         color: var(--muted);
         font-size: 1rem;
         line-height: 1.55;
+      }
+
+      @media (min-width: 881px) {
+        .topbar {
+          display: block;
+        }
+
+        .topbar > div:first-child {
+          width: 100%;
+        }
+
+        .topbar .user-chip {
+          position: absolute;
+          top: 0;
+          right: 0;
+          margin-top: 0;
+        }
       }
 
       .month-pill {
