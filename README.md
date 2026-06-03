@@ -1,6 +1,6 @@
 # Simply Budget
 
-A simple visual budget app for tracking income, expenses, leftover balance, and basic AI-style money advice.
+A simple visual monthly budget app for tracking income, expenses, leftover balance, category spending, and basic AI-style money advice by month.
 
 The app includes Supabase Authentication and a PayFast payment gate with two access options:
 
@@ -45,7 +45,13 @@ The app supports signup, login, logout, and password reset. Add your deployed si
 
 ## Supabase Budget Saving
 
-Each logged-in user's income, expenses, goals, and budget amounts are saved in Supabase under their own `user_id`.
+Each logged-in user's monthly income, expenses, goals, and budget amounts are saved in Supabase under their own `user_id`.
+
+Budget data is stored by month and year inside `public.user_budgets.data`:
+
+`{ "selectedMonth": "YYYY-MM", "months": { "YYYY-MM": { "items": [], "goals": [], "budgets": {} } } }`
+
+The dashboard, charts, monthly summary, AI overview, and month-over-month comparison only use the selected month's saved data. New users start with empty months; there is no demo budget data.
 
 Before using the app, open the Supabase SQL Editor and run the SQL in:
 

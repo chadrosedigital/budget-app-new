@@ -421,6 +421,93 @@
         box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
       }
 
+      .side-menu-toggle {
+        position: fixed;
+        left: 18px;
+        top: 22px;
+        z-index: 30;
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 9px 14px;
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--ink);
+        font-weight: 900;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+        cursor: pointer;
+      }
+
+      .side-menu {
+        position: fixed;
+        left: 18px;
+        top: 76px;
+        z-index: 29;
+        width: min(240px, calc(100vw - 36px));
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: var(--shadow);
+      }
+
+      .side-menu[hidden] {
+        display: none;
+      }
+
+      .side-menu button {
+        width: 100%;
+        min-height: 42px;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 900;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .side-menu button.active {
+        background: rgba(114, 87, 244, 0.12);
+        color: var(--savings);
+      }
+
+      .month-panel {
+        margin-bottom: 22px;
+      }
+
+      .month-selector {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+      }
+
+      .month-selector label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 800;
+      }
+
+      .month-nav-button {
+        min-width: 46px;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 0.9rem;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .month-context {
+        margin: 12px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
       .panel,
       .transaction {
         background: rgba(255, 255, 255, 0.9);
@@ -520,16 +607,60 @@
 
       .chart-card,
       .entry-panel,
+      .monthly-summary,
+      .comparison-card,
       .ai {
         margin-top: 26px;
       }
 
       .chart-card h2,
       .entry h2,
+      .monthly-summary h2,
+      .comparison-card h2,
       .ai h2 {
         margin: 0 0 22px;
         color: #334155;
         font-size: clamp(1.45rem, 4vw, 2rem);
+      }
+
+      .summary-grid,
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .summary-item,
+      .comparison-item {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.74);
+      }
+
+      .summary-item span,
+      .comparison-item span {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 800;
+      }
+
+      .summary-item strong,
+      .comparison-item strong {
+        display: block;
+        color: var(--ink);
+        font-size: clamp(1.15rem, 3vw, 1.55rem);
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+      }
+
+      .previous-note {
+        margin: 12px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
       }
 
       .donut-wrap {
@@ -977,6 +1108,7 @@
         }
 
         .topbar,
+        .month-panel,
         .stats,
         .entry,
         .ai {
@@ -984,6 +1116,7 @@
         }
 
         .topbar,
+        .month-panel,
         .stats {
           margin-bottom: 0;
         }
@@ -1048,9 +1181,16 @@
 
         .chart-card h2,
         .entry h2,
+        .monthly-summary h2,
+        .comparison-card h2,
         .ai h2 {
           font-size: 1.2rem;
           margin-bottom: 20px;
+        }
+
+        .summary-grid,
+        .comparison-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
         .donut-wrap {
@@ -1190,6 +1330,30 @@
           margin-bottom: 14px;
         }
 
+        .side-menu-toggle {
+          left: 14px;
+          top: 12px;
+        }
+
+        .side-menu {
+          left: 14px;
+          top: 62px;
+        }
+
+        .month-panel {
+          margin-bottom: 18px;
+          border-radius: 18px;
+        }
+
+        .month-selector {
+          gap: 8px;
+        }
+
+        .summary-grid,
+        .comparison-grid {
+          grid-template-columns: 1fr;
+        }
+
         .user-chip {
           display: flex;
           justify-content: flex-end;
@@ -1228,7 +1392,7 @@
           position: sticky;
           top: 0;
           z-index: 9;
-          display: grid;
+          display: none;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 8px;
           margin: 0 0 18px;
@@ -1266,6 +1430,8 @@
         .app.mobile-view-entries .install-banner,
         .app.mobile-view-entries .stats,
         .app.mobile-view-entries .chart-card,
+        .app.mobile-view-entries .monthly-summary,
+        .app.mobile-view-entries .comparison-card,
         .app.mobile-view-entries .ai {
           display: none;
         }
@@ -1273,6 +1439,8 @@
         .app.mobile-view-ai .install-banner,
         .app.mobile-view-ai .stats,
         .app.mobile-view-ai .chart-card,
+        .app.mobile-view-ai .monthly-summary,
+        .app.mobile-view-ai .comparison-card,
         .app.mobile-view-ai .entry {
           display: none;
         }
@@ -1531,13 +1699,20 @@
       </div>
     </section>
 
+    <button class="side-menu-toggle" type="button" id="sideMenuToggle" hidden>Menu</button>
+    <nav class="side-menu" id="sideMenu" aria-label="App menu" hidden>
+      <button class="active" type="button" data-mobile-view="dashboard">Dashboard</button>
+      <button type="button" data-mobile-view="entries">Add income and expenses</button>
+      <button type="button" data-mobile-view="ai">AI overview</button>
+    </nav>
+
     <main class="app" id="budgetApp" hidden>
       <header class="topbar">
         <div>
           <h1 class="brand-title">Simply Budget</h1>
           <p class="subtitle">
-            Track income and expenses, see where your money is going, and get
-            clear guidance from the overview at the bottom.
+            Track income and expenses by month, compare progress, and see where
+            your money is going.
           </p>
         </div>
         <div class="user-chip">
@@ -1565,6 +1740,18 @@
         <button class="mobile-menu-button" type="button" data-mobile-view="entries">Add entries</button>
         <button class="mobile-menu-button" type="button" data-mobile-view="ai">AI overview</button>
       </nav>
+
+      <section class="panel month-panel" aria-label="Budget month">
+        <div class="month-selector">
+          <button class="month-nav-button" type="button" id="previousMonthButton" aria-label="View previous month">Prev</button>
+          <label>
+            <span>Budget month</span>
+            <select id="monthSelect"></select>
+          </label>
+          <button class="month-nav-button" type="button" id="nextMonthButton" aria-label="View next month">Next</button>
+        </div>
+        <p class="month-context" id="monthContext">Showing this month's real budget data.</p>
+      </section>
 
       <section class="stats" aria-label="Budget summary">
         <article class="stat income-card">
@@ -1602,6 +1789,28 @@
       <section class="panel chart-card">
         <h2>Category breakdown</h2>
         <div class="bar-chart" id="categoryBars"></div>
+      </section>
+
+      <section class="panel monthly-summary" aria-label="Monthly summary">
+        <h2>Monthly Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-item"><span>Total Income</span><strong id="summaryIncome">R0</strong></div>
+          <div class="summary-item"><span>Total Expenses</span><strong id="summaryExpenses">R0</strong></div>
+          <div class="summary-item"><span>Net Savings</span><strong id="summarySavings">R0</strong></div>
+          <div class="summary-item"><span>Savings Rate</span><strong id="summarySavingsRate">0%</strong></div>
+          <div class="summary-item"><span>Biggest Spending Category</span><strong id="summaryTopCategory">None yet</strong></div>
+          <div class="summary-item"><span>Difference from Previous Month</span><strong id="summaryPreviousDifference">No previous month data available</strong></div>
+        </div>
+      </section>
+
+      <section class="panel comparison-card" aria-label="Month over month comparison">
+        <h2>Month-over-Month</h2>
+        <div class="comparison-grid">
+          <div class="comparison-item"><span>Income change</span><strong id="incomeChange">No previous month data available</strong></div>
+          <div class="comparison-item"><span>Expense change</span><strong id="expenseChange">No previous month data available</strong></div>
+          <div class="comparison-item"><span>Savings change</span><strong id="savingsChange">No previous month data available</strong></div>
+        </div>
+        <p class="previous-note" id="previousMonthNote">No previous month data available</p>
       </section>
 
       <section class="entry" aria-label="Money entry sections">
@@ -1683,17 +1892,6 @@
       });
 
       const USER_BUDGET_TABLE = "user_budgets";
-      const defaultBudgetState = {
-        items: [
-          { id: 1, name: "Salary", type: "income", amount: 35000, category: "Income" },
-          { id: 2, name: "Rent", type: "expense", amount: 8000, category: "Housing" },
-          { id: 3, name: "Groceries", type: "expense", amount: 4500, category: "Food" },
-          { id: 4, name: "Streaming", type: "expense", amount: 200, category: "Subscriptions" },
-        ],
-        goals: [],
-        budgets: {},
-      };
-
       const state = createDefaultBudgetState();
       const categoryColors = ["#4f46e5", "#f97316", "#10b981", "#e11d48", "#06b6d4", "#facc15", "#7c3aed", "#111827", "#84cc16"];
 
@@ -1703,6 +1901,7 @@
       let budgetSaveTimer = null;
       let isLoadingBudgetData = false;
       let deferredInstallPrompt = null;
+      let selectedMobileView = "dashboard";
       let previousDonutSlices = [];
       let donutAnimationFrame = null;
       const displayedTotals = {
@@ -1722,10 +1921,26 @@
       const paymentNote = document.querySelector("#paymentNote");
       const planButton = document.querySelector("#planButton");
       const budgetApp = document.querySelector("#budgetApp");
+      const sideMenuToggle = document.querySelector("#sideMenuToggle");
+      const sideMenu = document.querySelector("#sideMenu");
       const installBanner = document.querySelector("#installBanner");
       const installCopy = document.querySelector("#installCopy");
       const installButton = document.querySelector("#installButton");
       const installDismiss = document.querySelector("#installDismiss");
+      const monthSelect = document.querySelector("#monthSelect");
+      const previousMonthButton = document.querySelector("#previousMonthButton");
+      const nextMonthButton = document.querySelector("#nextMonthButton");
+      const monthContext = document.querySelector("#monthContext");
+      const summaryIncome = document.querySelector("#summaryIncome");
+      const summaryExpenses = document.querySelector("#summaryExpenses");
+      const summarySavings = document.querySelector("#summarySavings");
+      const summarySavingsRate = document.querySelector("#summarySavingsRate");
+      const summaryTopCategory = document.querySelector("#summaryTopCategory");
+      const summaryPreviousDifference = document.querySelector("#summaryPreviousDifference");
+      const incomeChange = document.querySelector("#incomeChange");
+      const expenseChange = document.querySelector("#expenseChange");
+      const savingsChange = document.querySelector("#savingsChange");
+      const previousMonthNote = document.querySelector("#previousMonthNote");
       const accountToggle = document.querySelector("#accountToggle");
       const accountMenu = document.querySelector("#accountMenu");
       const incomeForm = document.querySelector("#incomeForm");
@@ -1771,8 +1986,24 @@
 
       installDismiss.addEventListener("click", () => hideInstallBanner(true));
 
+      sideMenuToggle.addEventListener("click", () => {
+        sideMenu.hidden = !sideMenu.hidden;
+      });
+
       mobileMenuButtons.forEach((button) => {
         button.addEventListener("click", () => setMobileView(button.dataset.mobileView));
+      });
+
+      monthSelect.addEventListener("change", () => {
+        setSelectedMonth(monthSelect.value, { save: true });
+      });
+
+      previousMonthButton.addEventListener("click", () => {
+        setSelectedMonth(shiftMonthKey(state.selectedMonth, -1), { save: true });
+      });
+
+      nextMonthButton.addEventListener("click", () => {
+        setSelectedMonth(shiftMonthKey(state.selectedMonth, 1), { save: true });
       });
 
       document.querySelectorAll("[data-auth-mode]").forEach((button) => {
@@ -1932,7 +2163,7 @@
 
         if (!name || amount <= 0) return;
 
-        state.items.unshift({
+        currentItems().unshift({
           id: Date.now(),
           name,
           type: "income",
@@ -1954,7 +2185,7 @@
 
         if (!name || amount <= 0) return;
 
-        state.items.unshift({
+        currentItems().unshift({
           id: Date.now(),
           name,
           type: "expense",
@@ -1971,7 +2202,8 @@
       budgetApp.addEventListener("click", (event) => {
         const button = event.target.closest("button[data-id]");
         if (!button) return;
-        state.items = state.items.filter((item) => item.id !== Number(button.dataset.id));
+        const record = getMonthRecord();
+        record.items = record.items.filter((item) => item.id !== Number(button.dataset.id));
         render();
         pulseBudgetUi("all");
         saveBudgetData({ immediate: true });
@@ -2022,22 +2254,70 @@
         return null;
       }
 
-      function totals() {
-        const income = state.items
+      function currentMonthKey(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        return `${year}-${month}`;
+      }
+
+      function shiftMonthKey(monthKey, offset) {
+        const [year, month] = String(monthKey || currentMonthKey()).split("-").map(Number);
+        const date = new Date(year || new Date().getFullYear(), (month || 1) - 1 + offset, 1);
+        return currentMonthKey(date);
+      }
+
+      function monthLabel(monthKey) {
+        const [year, month] = String(monthKey || currentMonthKey()).split("-").map(Number);
+        return new Intl.DateTimeFormat("en-ZA", {
+          month: "long",
+          year: "numeric",
+        }).format(new Date(year || new Date().getFullYear(), (month || 1) - 1, 1));
+      }
+
+      function getMonthRecord(monthKey = state.selectedMonth, { create = true } = {}) {
+        const key = monthKey || currentMonthKey();
+        if (!state.months[key] && create) {
+          state.months[key] = { items: [], goals: [], budgets: {} };
+        }
+        return state.months[key] || { items: [], goals: [], budgets: {} };
+      }
+
+      function currentItems() {
+        return getMonthRecord().items;
+      }
+
+      function hasMonthData(monthKey) {
+        const record = getMonthRecord(monthKey, { create: false });
+        return Boolean(
+          record &&
+            ((Array.isArray(record.items) && record.items.length) ||
+              (Array.isArray(record.goals) && record.goals.length) ||
+              (record.budgets && Object.keys(record.budgets).length))
+        );
+      }
+
+      function totals(items = currentItems()) {
+        const income = items
           .filter((item) => item.type === "income")
           .reduce((sum, item) => sum + item.amount, 0);
-        const expenses = state.items
+        const expenses = items
           .filter((item) => item.type === "expense")
           .reduce((sum, item) => sum + item.amount, 0);
 
         return { income, expenses, balance: income - expenses };
       }
 
+      function savingsRateFromTotals(monthTotals) {
+        return monthTotals.income > 0 ? Math.round((monthTotals.balance / monthTotals.income) * 100) : 0;
+      }
+
       function render() {
         const { income, expenses, balance } = totals();
         const expenseRatio = income > 0 ? expenses / income : 0;
-        const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
+        const savingsRate = savingsRateFromTotals({ income, expenses, balance });
 
+        renderMonthOptions();
+        renderMonthlySummary();
         animateMoneyValue("income", document.querySelector("#incomeTotal"), income);
         animateMoneyValue("expenses", document.querySelector("#expenseTotal"), expenses);
         animateMoneyValue("balance", document.querySelector("#balanceTotal"), balance);
@@ -2047,9 +2327,72 @@
         renderMoneyLists();
       }
 
-      function expenseCategoryData() {
+      function renderMonthOptions() {
+        const keys = new Set(Object.keys(state.months || {}));
+        const current = currentMonthKey();
+        for (let offset = -12; offset <= 12; offset += 1) {
+          keys.add(shiftMonthKey(current, offset));
+          keys.add(shiftMonthKey(state.selectedMonth, offset));
+        }
+
+        monthSelect.innerHTML = [...keys]
+          .sort()
+          .map((key) => `<option value="${key}"${key === state.selectedMonth ? " selected" : ""}>${monthLabel(key)}</option>`)
+          .join("");
+
+        monthContext.textContent = `Showing real budget data for ${monthLabel(state.selectedMonth)}.`;
+      }
+
+      function renderMonthlySummary() {
+        const monthTotals = totals();
+        const savingsRate = savingsRateFromTotals(monthTotals);
+        const categoryData = expenseCategoryData();
+        const topCategory = categoryData[0];
+        const previousMonthKey = shiftMonthKey(state.selectedMonth, -1);
+        const previousHasData = hasMonthData(previousMonthKey);
+        const previousTotals = totals(getMonthRecord(previousMonthKey, { create: false }).items || []);
+
+        summaryIncome.textContent = money.format(monthTotals.income);
+        summaryExpenses.textContent = money.format(monthTotals.expenses);
+        summarySavings.textContent = money.format(monthTotals.balance);
+        summarySavingsRate.textContent = `${Math.max(savingsRate, 0)}%`;
+        summaryTopCategory.textContent = topCategory ? `${topCategory.name} (${money.format(topCategory.amount)})` : "None yet";
+
+        if (!previousHasData) {
+          summaryPreviousDifference.textContent = "No previous month data available";
+          incomeChange.textContent = "No previous month data available";
+          expenseChange.textContent = "No previous month data available";
+          savingsChange.textContent = "No previous month data available";
+          previousMonthNote.textContent = "No previous month data available";
+          return;
+        }
+
+        summaryPreviousDifference.textContent = formatMoneyDifference(monthTotals.balance - previousTotals.balance);
+        incomeChange.textContent = formatPercentChange(monthTotals.income, previousTotals.income);
+        expenseChange.textContent = formatPercentChange(monthTotals.expenses, previousTotals.expenses);
+        savingsChange.textContent = formatPercentChange(monthTotals.balance, previousTotals.balance);
+        previousMonthNote.textContent = `Compared with ${monthLabel(previousMonthKey)}.`;
+      }
+
+      function formatMoneyDifference(value) {
+        if (value === 0) return "No change";
+        const direction = value > 0 ? "up" : "down";
+        return `${direction} ${money.format(Math.abs(value))}`;
+      }
+
+      function formatPercentChange(currentValue, previousValue) {
+        if (!previousValue) {
+          return currentValue ? "New this month" : "No change";
+        }
+        const change = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+        if (Math.abs(change) < 0.5) return "0%";
+        const sign = change > 0 ? "+" : "";
+        return `${sign}${Math.round(change)}%`;
+      }
+
+      function expenseCategoryData(items = currentItems()) {
         return Object.entries(
-          state.items
+          items
             .filter((item) => item.type === "expense")
             .reduce((categories, item) => {
               categories[item.category] = (categories[item.category] || 0) + item.amount;
@@ -2249,8 +2592,8 @@
       }
 
       function renderMoneyLists() {
-        incomeList.innerHTML = renderListItems(state.items.filter((item) => item.type === "income"));
-        expenseList.innerHTML = renderListItems(state.items.filter((item) => item.type === "expense"));
+        incomeList.innerHTML = renderListItems(currentItems().filter((item) => item.type === "income"));
+        expenseList.innerHTML = renderListItems(currentItems().filter((item) => item.type === "expense"));
       }
 
       function renderListItems(items) {
@@ -2279,10 +2622,11 @@
 
       function renderAiOverview(income, expenses, balance, expenseRatio) {
         const savingsRate = income > 0 ? balance / income : 0;
-        const biggestExpense = state.items
+        const items = currentItems();
+        const biggestExpense = items
           .filter((item) => item.type === "expense")
           .sort((a, b) => b.amount - a.amount)[0];
-        const expenseCategories = state.items
+        const expenseCategories = items
           .filter((item) => item.type === "expense")
           .reduce((categories, item) => {
             categories[item.category] = (categories[item.category] || 0) + item.amount;
@@ -2291,12 +2635,12 @@
         const topCategory = Object.entries(expenseCategories).sort((a, b) => b[1] - a[1])[0];
         const savingsSentence =
           income === 0
-            ? "At the moment there is no income recorded, so the first priority is to add your main income source before judging whether the budget is healthy."
+            ? `For ${monthLabel(state.selectedMonth)}, there is no income recorded yet, so the first priority is to add your main income source before judging whether the budget is healthy.`
             : savingsRate >= 0.2
-              ? `You are keeping about ${Math.round(savingsRate * 100)}% of your income after expenses, which is a strong position because it gives you room for savings, emergencies, and future goals.`
+              ? `For ${monthLabel(state.selectedMonth)}, you are keeping about ${Math.round(savingsRate * 100)}% of your income after expenses, which is a strong position because it gives you room for savings, emergencies, and future goals.`
               : balance >= 0
-                ? `You are still ending with ${money.format(balance)} left over, but your savings margin is fairly tight, so a few small expense increases could put pressure on the month.`
-                : `Your expenses are currently higher than your income by ${money.format(Math.abs(balance))}, which means the budget needs attention before adding any new spending.`;
+                ? `For ${monthLabel(state.selectedMonth)}, you are still ending with ${money.format(balance)} left over, but your savings margin is fairly tight, so a few small expense increases could put pressure on the month.`
+                : `For ${monthLabel(state.selectedMonth)}, your expenses are currently higher than your income by ${money.format(Math.abs(balance))}, which means the budget needs attention before adding any new spending.`;
         const spendingSentence = biggestExpense
           ? `Your largest single expense is ${biggestExpense.name} at ${money.format(biggestExpense.amount)}, and your biggest category is ${topCategory[0]} at ${money.format(topCategory[1])}. That is the best place to look first if you want a meaningful improvement without cutting lots of tiny items.`
           : "There are no expenses recorded yet, so add the main recurring costs such as rent, food, transport, subscriptions, debt, and health before relying on the advice.";
@@ -2327,48 +2671,115 @@
       }
 
       function createDefaultBudgetState() {
-        return cloneBudgetState(defaultBudgetState);
-      }
-
-      function cloneBudgetState(value) {
-        return JSON.parse(JSON.stringify(value));
+        return {
+          selectedMonth: currentMonthKey(),
+          months: {},
+        };
       }
 
       function serializeBudgetState() {
         return {
-          items: state.items,
-          goals: state.goals || [],
-          budgets: state.budgets || {},
+          selectedMonth: state.selectedMonth,
+          months: state.months || {},
         };
       }
 
       function normalizeBudgetData(data) {
         const source = data && typeof data === "object" ? data : {};
-        const items = Array.isArray(source.items) ? source.items : [];
+        const selectedMonth = isMonthKey(source.selectedMonth) ? source.selectedMonth : currentMonthKey();
+        const months = {};
+
+        if (source.months && typeof source.months === "object") {
+          Object.entries(source.months).forEach(([monthKey, record]) => {
+            if (!isMonthKey(monthKey)) return;
+            months[monthKey] = normalizeMonthRecord(record);
+          });
+        } else {
+          const oldItems = normalizeItems(Array.isArray(source.items) ? source.items : []);
+          if (oldItems.length && !isDemoBudgetItems(oldItems)) {
+            months[selectedMonth] = {
+              items: oldItems,
+              goals: Array.isArray(source.goals) ? source.goals : [],
+              budgets: source.budgets && typeof source.budgets === "object" ? source.budgets : {},
+            };
+          }
+        }
 
         return {
-          items: items
-            .map((item, index) => {
-              const type = item.type === "expense" ? "expense" : "income";
-              return {
-                id: Number(item.id) || Date.now() + index,
-                name: String(item.name || (type === "expense" ? "Expense" : "Income")),
-                type,
-                amount: Number(item.amount) || 0,
-                category: String(item.category || (type === "expense" ? "Other" : "Income")),
-              };
-            })
-            .filter((item) => item.amount > 0),
+          selectedMonth,
+          months,
+        };
+      }
+
+      function normalizeMonthRecord(record) {
+        const source = record && typeof record === "object" ? record : {};
+        return {
+          items: normalizeItems(Array.isArray(source.items) ? source.items : []),
           goals: Array.isArray(source.goals) ? source.goals : [],
           budgets: source.budgets && typeof source.budgets === "object" ? source.budgets : {},
         };
       }
 
+      function normalizeItems(items) {
+        return items
+          .map((item, index) => {
+            const type = item.type === "expense" ? "expense" : "income";
+            return {
+              id: Number(item.id) || Date.now() + index,
+              name: String(item.name || (type === "expense" ? "Expense" : "Income")),
+              type,
+              amount: Number(item.amount) || 0,
+              category: String(item.category || (type === "expense" ? "Other" : "Income")),
+            };
+          })
+          .filter((item) => item.amount > 0);
+      }
+
+      function isMonthKey(value) {
+        return /^\d{4}-\d{2}$/.test(String(value || ""));
+      }
+
+      function isDemoBudgetItems(items) {
+        if (items.length !== 4) return false;
+        const signature = items
+          .map((item) => `${item.type}:${item.name}:${item.amount}:${item.category}`)
+          .sort()
+          .join("|");
+        return signature === [
+          "expense:Groceries:4500:Food",
+          "expense:Rent:8000:Housing",
+          "expense:Streaming:200:Subscriptions",
+          "income:Salary:35000:Income",
+        ].sort().join("|");
+      }
+
       function setBudgetState(nextState) {
         const normalized = normalizeBudgetData(nextState);
-        state.items = normalized.items;
-        state.goals = normalized.goals;
-        state.budgets = normalized.budgets;
+        state.selectedMonth = normalized.selectedMonth;
+        state.months = normalized.months;
+        getMonthRecord(state.selectedMonth);
+      }
+
+      function setSelectedMonth(monthKey, { save = false } = {}) {
+        if (!isMonthKey(monthKey)) return;
+        state.selectedMonth = monthKey;
+        getMonthRecord(monthKey);
+        updateAccountLabel();
+        previousDonutSlices = [];
+        displayedTotals.income = null;
+        displayedTotals.expenses = null;
+        displayedTotals.balance = null;
+        render();
+        if (save) {
+          saveBudgetData({ immediate: true });
+        }
+      }
+
+      function updateAccountLabel(plan = getSelectedPlan()) {
+        if (!currentUser) return;
+        const displayName = currentUser?.user_metadata?.full_name || currentUser?.email || "Account";
+        const planName = plan?.planLabel || "3-Day Trial";
+        document.querySelector("#accountLabel").textContent = `${displayName} · ${currentUser.email} · ${planName} · ${monthLabel(state.selectedMonth)}`;
       }
 
       function resetBudgetSession() {
@@ -2656,20 +3067,14 @@
 
       async function showBudgetApp() {
         await loadBudgetData();
-        const plan = getSelectedPlan();
-        const month = new Intl.DateTimeFormat("en-ZA", {
-          month: "long",
-          year: "numeric",
-        }).format(new Date());
-
-        const displayName = currentUser?.user_metadata?.full_name || currentUser?.email || "Account";
-        const planName = plan?.planLabel || "3-Day Trial";
-        document.querySelector("#accountLabel").textContent = `${displayName} · ${currentUser.email} · ${planName} · ${month}`;
+        updateAccountLabel();
         accountMenu.hidden = true;
         accountToggle.setAttribute("aria-expanded", "false");
         loadingScreen.hidden = true;
         authScreen.hidden = true;
         paymentScreen.hidden = true;
+        sideMenuToggle.hidden = false;
+        sideMenu.hidden = true;
         budgetApp.hidden = false;
         setMobileView("dashboard");
         render();
@@ -2684,6 +3089,8 @@
           button.classList.toggle("active", isActive);
           button.setAttribute("aria-current", isActive ? "page" : "false");
         });
+        selectedMobileView = validView;
+        sideMenu.hidden = true;
       }
 
       function showPaymentScreen() {
@@ -2691,6 +3098,8 @@
         loadingScreen.hidden = true;
         authScreen.hidden = true;
         budgetApp.hidden = true;
+        sideMenuToggle.hidden = true;
+        sideMenu.hidden = true;
         paymentScreen.hidden = false;
         planButton.disabled = false;
         if (currentAccess?.reason === "trial_expired") {
@@ -2703,6 +3112,8 @@
         loadingScreen.hidden = true;
         authScreen.hidden = true;
         budgetApp.hidden = true;
+        sideMenuToggle.hidden = true;
+        sideMenu.hidden = true;
         paymentScreen.hidden = false;
         paymentForm.classList.add("is-confirming");
         planButton.disabled = true;
@@ -2712,6 +3123,8 @@
         loadingScreen.hidden = true;
         budgetApp.hidden = true;
         paymentScreen.hidden = true;
+        sideMenuToggle.hidden = true;
+        sideMenu.hidden = true;
         authScreen.hidden = false;
         setAuthMode("login");
         document.querySelector("#loginEmail").focus();

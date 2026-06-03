@@ -4,6 +4,9 @@ create table if not exists public.user_budgets (
   updated_at timestamptz not null default now()
 );
 
+comment on column public.user_budgets.data is
+'Simply Budget monthly data. Shape: { "selectedMonth": "YYYY-MM", "months": { "YYYY-MM": { "items": [], "goals": [], "budgets": {} } } }.';
+
 alter table public.user_budgets enable row level security;
 
 grant select, insert, update, delete on public.user_budgets to authenticated;
