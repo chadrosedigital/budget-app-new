@@ -713,7 +713,8 @@
         color: var(--ink);
         font-size: clamp(1.02rem, 2.2vw, 1.35rem);
         line-height: 1.1;
-        overflow-wrap: anywhere;
+        overflow-wrap: break-word;
+        word-break: normal;
       }
 
       .previous-note {
@@ -1249,16 +1250,44 @@
 
         .summary-grid,
         .comparison-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .summary-item,
         .comparison-item {
-          min-height: 118px;
+          min-height: 112px;
+        }
+
+        .summary-item {
+          padding-right: 86px;
+        }
+
+        .summary-item::after {
+          right: 14px;
+          width: 58px;
+        }
+
+        .summary-item::before {
+          right: 30px;
+          width: 26px;
+        }
+
+        .summary-item:nth-child(-n + 4) strong {
+          white-space: nowrap;
+        }
+
+        .summary-item strong,
+        .comparison-item strong {
+          font-size: clamp(1rem, 1.22vw, 1.22rem);
+          line-height: 1.2;
         }
 
         .comparison-item strong {
-          font-size: clamp(1rem, 1.35vw, 1.32rem);
+          font-size: clamp(0.98rem, 1.14vw, 1.15rem);
+        }
+
+        .comparison-grid {
+          grid-template-columns: 1fr;
         }
 
         .donut-wrap {
