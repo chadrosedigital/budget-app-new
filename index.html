@@ -453,12 +453,14 @@
         left: 18px;
         top: 76px;
         z-index: 29;
-        width: min(240px, calc(100vw - 36px));
-        padding: 12px;
+        width: min(280px, calc(100vw - 36px));
+        padding: 16px;
         border: 1px solid var(--line);
         border-radius: 18px;
         background: rgba(255, 255, 255, 0.96);
         box-shadow: var(--shadow);
+        display: grid;
+        gap: 8px;
       }
 
       .side-menu[hidden] {
@@ -467,12 +469,14 @@
 
       .side-menu button {
         width: 100%;
-        min-height: 42px;
+        min-height: 48px;
         border: 0;
         border-radius: 12px;
+        padding: 10px 12px;
         background: transparent;
         color: var(--muted);
         font-weight: 900;
+        line-height: 1.35;
         text-align: left;
         cursor: pointer;
       }
@@ -480,6 +484,21 @@
       .side-menu button.active {
         background: rgba(114, 87, 244, 0.12);
         color: var(--savings);
+      }
+
+      .side-menu-section {
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+      }
+
+      .side-menu-title {
+        margin: 0 0 6px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
       }
 
       .month-panel {
@@ -1808,6 +1827,10 @@
       <button class="active" type="button" data-mobile-view="dashboard">Dashboard</button>
       <button type="button" data-mobile-view="entries">Add income and expenses</button>
       <button type="button" data-mobile-view="ai">AI overview</button>
+      <div class="side-menu-section">
+        <p class="side-menu-title">Account</p>
+        <button type="button" id="menuAuthButton">Sign out</button>
+      </div>
     </nav>
 
     <main class="app" id="budgetApp" hidden>
@@ -2027,6 +2050,7 @@
       const budgetApp = document.querySelector("#budgetApp");
       const sideMenuToggle = document.querySelector("#sideMenuToggle");
       const sideMenu = document.querySelector("#sideMenu");
+      const menuAuthButton = document.querySelector("#menuAuthButton");
       const installBanner = document.querySelector("#installBanner");
       const installCopy = document.querySelector("#installCopy");
       const installButton = document.querySelector("#installButton");
@@ -2091,7 +2115,18 @@
       installDismiss.addEventListener("click", () => hideInstallBanner(true));
 
       sideMenuToggle.addEventListener("click", () => {
+        updateMenuAccountButton();
         sideMenu.hidden = !sideMenu.hidden;
+      });
+
+      menuAuthButton.addEventListener("click", async () => {
+        if (currentUser) {
+          await signOutUser();
+          return;
+        }
+
+        sideMenu.hidden = true;
+        showAuthScreen();
       });
 
       mobileMenuButtons.forEach((button) => {
@@ -2253,12 +2288,7 @@
         }
       });
 
-      document.querySelector("#signOutButton").addEventListener("click", async () => {
-        await supabaseClient.auth.signOut();
-        resetBudgetSession();
-        currentUser = null;
-        showAuthScreen();
-      });
+      document.querySelector("#signOutButton").addEventListener("click", signOutUser);
 
       incomeForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -2920,6 +2950,19 @@
         document.querySelector("#accountLabel").textContent = `${displayName} · ${currentUser.email} · ${planName} · ${monthLabel(state.selectedMonth)}`;
       }
 
+      function updateMenuAccountButton() {
+        menuAuthButton.textContent = currentUser ? "Sign out" : "Log in";
+      }
+
+      async function signOutUser() {
+        await supabaseClient.auth.signOut();
+        resetBudgetSession();
+        currentUser = null;
+        updateMenuAccountButton();
+        sideMenu.hidden = true;
+        showAuthScreen();
+      }
+
       function resetBudgetSession() {
         if (budgetSaveTimer) {
           clearTimeout(budgetSaveTimer);
@@ -3213,6 +3256,7 @@
         paymentScreen.hidden = true;
         sideMenuToggle.hidden = false;
         sideMenu.hidden = true;
+        updateMenuAccountButton();
         budgetApp.hidden = false;
         setMobileView("dashboard");
         render();
@@ -3236,8 +3280,9 @@
         loadingScreen.hidden = true;
         authScreen.hidden = true;
         budgetApp.hidden = true;
-        sideMenuToggle.hidden = true;
+        sideMenuToggle.hidden = false;
         sideMenu.hidden = true;
+        updateMenuAccountButton();
         paymentScreen.hidden = false;
         planButton.disabled = false;
         if (currentAccess?.reason === "trial_expired") {
@@ -3261,8 +3306,9 @@
         loadingScreen.hidden = true;
         budgetApp.hidden = true;
         paymentScreen.hidden = true;
-        sideMenuToggle.hidden = true;
+        sideMenuToggle.hidden = false;
         sideMenu.hidden = true;
+        updateMenuAccountButton();
         authScreen.hidden = false;
         setAuthMode("login");
         document.querySelector("#loginEmail").focus();
