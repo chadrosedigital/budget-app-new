@@ -1290,6 +1290,7 @@
         .month-panel,
         .stats,
         .entry,
+        .calendar-page,
         .ai {
           grid-column: 1 / -1;
         }
@@ -1308,6 +1309,10 @@
         .install-banner {
           grid-column: 1 / -1;
           margin-bottom: 0;
+        }
+
+        .calendar-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
         .stat {
@@ -1934,8 +1939,8 @@
       </button>
     <nav class="side-menu" id="sideMenu" aria-label="App menu" hidden>
       <button class="active" type="button" data-mobile-view="dashboard">Dashboard</button>
-      <button type="button" data-mobile-view="calendar">Calendar</button>
       <button class="desktop-menu-extra" type="button" data-mobile-view="entries">Add income and expenses</button>
+      <button type="button" data-mobile-view="calendar">Calendar</button>
       <button class="desktop-menu-extra" type="button" data-mobile-view="ai">AI overview</button>
       <div class="side-menu-section">
         <p class="side-menu-title">Account</p>
